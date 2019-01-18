@@ -52,6 +52,35 @@ type Page struct {
     MyIA  string
 }
 
+func isYoungerThanOneDay(t time.Time) bool {
+    return time.Now().Sub(t) < 24*time.Hour
+}
+
+func findFilesYoungerThanOneDay(ia string, dir string) (files []os.FileInfo, err error) {
+    tmpfiles, err := ioutil.ReadDir(dir)
+    if err != nil {
+        return
+    }
+    // limit based on ia
+    myIa := strings.Replace(ia, ":", "_", -1)
+    for _, file := range tmpfiles {
+        if file.Mode().IsRegular() && strings.Contains(file.Name(), myIa) {
+            //FS if file.Mode().IsRegular() {
+            if isYoungerThanOneDay(file.ModTime()) {
+                files = append(files, file)
+            }
+        }
+    }
+    return
+}
+
+func log_graph(ia string) {
+    files, _ := findFilesYoungerThanOneDay(ia, "/home/mwfarb/go/src/github.com/scionproto/scion/logs")
+    for _, file := range files {
+        fmt.Println(ia + ": " + string(file.Name()))
+    }
+}
+
 func main() {
     flag.Parse()
     _, srcfile, _, _ := runtime.Caller(0)
@@ -72,6 +101,7 @@ func main() {
     lib.GenClientNodeDefaults(srcpath)
     lib.GenServerNodeDefaults(srcpath)
     myIa = lib.GetLocalIa()
+    log_graph(myIa)
     refreshRootDirectory()
     appsBuildCheck("bwtester")
     appsBuildCheck("camerapp")
