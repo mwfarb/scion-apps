@@ -115,6 +115,7 @@ func main() {
     http.HandleFunc("/astopo", astopoHandler)
     http.HandleFunc("/crt", crtHandler)
     http.HandleFunc("/trc", trcHandler)
+    http.HandleFunc("/logs", logsHandler)
     fsStatic := http.FileServer(http.Dir(path.Join(srcpath, "static")))
     http.Handle("/static/", http.StripPrefix("/static/", fsStatic))
     fsImageFetcher := http.FileServer(http.Dir("."))
@@ -158,6 +159,7 @@ func prepareTemplates(srcpath string) *template.Template {
         path.Join(srcpath, "template/astopo.html"),
         path.Join(srcpath, "template/crt.html"),
         path.Join(srcpath, "template/trc.html"),
+        path.Join(srcpath, "template/logs.html"),
     ))
 }
 
@@ -206,6 +208,10 @@ func crtHandler(w http.ResponseWriter, r *http.Request) {
 
 func trcHandler(w http.ResponseWriter, r *http.Request) {
     display(w, "trc", &Page{Title: "SCIONLab TRC", MyIA: myIa})
+}
+
+func logsHandler(w http.ResponseWriter, r *http.Request) {
+    display(w, "logs", &Page{Title: "SCIONLab Logs", MyIA: myIa})
 }
 
 func parseRequest2BwtestItem(r *http.Request, appSel string) (*model.BwTestItem, string) {

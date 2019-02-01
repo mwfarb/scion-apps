@@ -1,0 +1,159 @@
+{{define "logs"}} {{template "header" .}}
+
+<div class="content">
+
+ <script type="text/javascript" src="static/js/apexcharts.min.js"></script>
+
+ <p>
+  Logging IA: <select>
+   <option value="1-ff00:0:111">1-ff00:0:111</option>
+   <option value="1-ff00:0:110">1-ff00:0:110</option>
+   <option value="1-ff00:0:112">1-ff00:0:112</option>
+  </select>
+ </p>
+ <div id="chart"></div>
+
+ <script type="text/javascript">
+        /*
+         * TODO: WIP Logs Heatmap
+         * https://apexcharts.com/javascript-chart-demos/heatmap-charts/color-range/
+         * https://arpitnarechania.github.io/d3-dotmatrix/
+         * https://github.com/marmelab/EventDrops
+         * https://moderndata.plot.ly/heatmaps-with-padding-gaps-in-plotly/
+         * https://github.com/shekhargulati/angular-cal-heatmap-directive
+         * https://cal-heatmap.com/
+         * https://beta.observablehq.com/@mbostock/d3-calendar-view
+         * http://plottablejs.org/examples/calendar/
+         * https://github.com/g1eb/calendar-heatmap
+         */
+
+        var colNum = 60;
+        var time = (new Date()).getTime();
+
+        function generateData(count, yrange) {
+            var i = 0;
+            var series = [];
+            while (i < count) {
+                var x = time - (i * 1000 * 60);
+                var y = Math.floor(Math.random()
+                        * (yrange.max - yrange.min + 1))
+                        + yrange.min;
+
+                series.push({
+                    x : x,
+                    y : y
+                });
+                i++;
+            }
+            return series;
+        }
+
+        var options = {
+            chart : {
+                height : 350,
+                type : 'heatmap',
+            },
+            plotOptions : {
+                heatmap : {
+                    shadeIntensity : 0.5,
+
+                    colorScale : {
+                        ranges : [ {
+                            from : -30,
+                            to : 5,
+                            name : 'debug',
+                            color : '#CCCCCC'
+                        }, {
+                            from : 6,
+                            to : 20,
+                            name : 'info',
+                            color : '#555555'
+                        }, {
+                            from : 21,
+                            to : 45,
+                            name : 'warning',
+                            color : '#FFB200'
+                        }, {
+                            from : 46,
+                            to : 55,
+                            name : 'error',
+                            color : '#FF0000'
+                        } ]
+                    }
+                }
+            },
+            xaxis : {
+                type : 'datetime',
+            },
+            dataLabels : {
+                enabled : false
+            },
+            series : [ {
+                name : 'br1-ff00_0_111-1',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'br1-ff00_0_111-2',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'br1-ff00_0_111-3',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'bs1-ff00_0_111-1',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'cs1-ff00_0_111-1',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'dispatcher',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'ps1-ff00_0_111-1',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'sd1-ff00_0_111',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            }, {
+                name : 'supervisord',
+                data : generateData(colNum, {
+                    min : -30,
+                    max : 55
+                })
+            } ],
+            title : {
+                text : 'SCIONLab Recent Logs Time Series by Service'
+            },
+
+        }
+
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+
+        chart.render();
+    </script>
+
+</div>
+
+{{template "footer" .}} {{end}}
