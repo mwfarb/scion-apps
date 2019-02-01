@@ -13,7 +13,45 @@
  </p>
  <div id="chart"></div>
 
+ <div class="stdout">
+  <div id="results"></div>
+ </div>
+
  <script type="text/javascript">
+
+
+var sample = `
+    2019-01-26 00:23:00.189716+0000 [INFO] =====================> Service started SD sd1-ff00_0_111
+    Build date:    local builds have no build time
+    Scion version: v0.3.1-178-ga0b203b
+    Buid chain:    go version go1.9.4 linux/amd64
+    In docker:     false
+    euid/egid:     1000 1000
+    cmd line:      ["bin/sciond" "-config" "gen/ISD1/ASff00_0_111/endhost/sciond.toml"]
+  2019-01-26 00:23:00.190301+0000 [INFO] Connecting PathDB backend=sqlite connection=gen-cache/sd1-ff00_0_111.path.db
+  2019-01-26 00:23:00.554894+0000 [INFO] Connecting RevCache backend=mem connection=""
+  2019-01-26 00:23:00.554944+0000 [INFO] Connecting TrustDB backend=sqlite connection=gen-cache/sd1-ff00_0_111.trust.db
+  2019-01-26 00:23:00.992343+0000 [DBUG] Registered with dispatcher addr="1-ff00:0:111,[127.0.0.1]:1027 (UDP)"
+  2019-01-26 00:23:50.271170+0000 [DBUG] [PathRequestHandler] Received request debug_id=63cba9f8 req="1-ff00:0:111 -> 1-ff00:0:112, maxPaths=5, flags={false}"
+  2019-01-26 00:23:50.271540+0000 [DBUG] Requesting segments debug_id=63cba9f8 ps="1-ff00:0:111,[127.0.0.20]:31007 (UDP)"
+  2019-01-26 00:24:00.272124+0000 [DBUG] Replied with paths debug_id=63cba9f8 num_paths=0
+  2019-01-26 00:24:00.272429+0000 [EROR] Unable to retrieve paths from network debug_id=63cba9f8 err=
+  >  [Messenger] Request error
+  >      internal error op="waitTable.WaitForReply"
+  >      context deadline exceeded
+  2019-01-26 00:35:05.302564+0000 [DBUG] [PathRequestHandler] Received request debug_id=b9397222 req="1-ff00:0:111 -> 1-ff00:0:112, maxPaths=5, flags={false}"
+  2019-01-26 00:35:05.302837+0000 [DBUG] Requesting segments debug_id=b9397222 ps="1-ff00:0:111,[127.0.0.20]:31007 (UDP)"
+  2019-01-26 00:35:15.303213+0000 [EROR] Unable to retrieve paths from network debug_id=b9397222 err=
+  >  [Messenger] Request error
+  >      internal error op="waitTable.WaitForReply"
+  >      context deadline exceeded
+  2019-01-26 00:35:15.303596+0000 [DBUG] Replied with paths debug_id=b9397222 num_paths=0
+  2019-01-26 00:35:30.934447+0000 [DBUG] Registering with dispatcher failed, retrying...
+  2019-01-26 00:35:30.937242+0000 [INFO] Received signal, exiting... signal=terminated
+  2019-01-26 00:35:30.937370+0000 [INFO] =====================> Service stopped SD sd1-ff00_0_111
+`;
+
+
         /*
          * TODO: WIP Logs Heatmap
          * https://apexcharts.com/javascript-chart-demos/heatmap-charts/color-range/
@@ -25,6 +63,8 @@
          * https://beta.observablehq.com/@mbostock/d3-calendar-view
          * http://plottablejs.org/examples/calendar/
          * https://github.com/g1eb/calendar-heatmap
+         *
+         * demo steps: bold font for selected lines, colorise log level tags, advance to section
          */
 
         var colNum = 60;
@@ -150,8 +190,10 @@
         }
 
         var chart = new ApexCharts(document.querySelector("#chart"), options);
-
         chart.render();
+
+        $('#results').html(sample);
+
     </script>
 
 </div>
