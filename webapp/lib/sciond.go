@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	log "github.com/inconshreveable/log15"
+	"github.com/netsec-ethz/scion-apps/lib/scionutil"
 	. "github.com/netsec-ethz/scion-apps/webapp/util"
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
@@ -68,6 +69,23 @@ func PathTopoHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	//TODO: debug testing rains resolution
+	//https://netsec-ethz.github.io/scion-tutorials/sample_projects/rains/
+	//https://github.com/netsec-ethz/rains
+	//scionutil.InitSCIONString(fmt.Sprintf("%s,[127.0.0.1]:0", SIa))
+	ia, host, err := scionutil.GetHostByName("ap17.node.snet.")
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+	log.Debug(fmt.Sprintf("ap17.node.snet.: %s,[%s]", ia, host))
+	ia, host, err = scionutil.GetHostByName("ns1.snet.")
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+	log.Debug(fmt.Sprintf("ns1.snet.: %s,[%s]", ia, host))
 
 	paths := getPaths(*clientCCAddr, *serverCCAddr)
 	if len(paths) == 0 {
