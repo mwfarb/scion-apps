@@ -7,6 +7,18 @@
    "port": 30100
   },
   {
+   "name": "ap17.node.snet.",
+   "isdas": "",
+   "addr": "ap17.node.snet.",
+   "port": 55553
+  },
+  {
+   "name": "ns1.snet.",
+   "isdas": "",
+   "addr": "ns1.snet.",
+   "port": 5025
+  },
+  {
    "name": "17-ffaa:1:f",
    "isdas": "17-ffaa:1:f",
    "addr": "10.0.2.15",
