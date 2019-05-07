@@ -275,7 +275,7 @@ func parseBwTest2Cmd(d *model.BwTestItem, appSel string, pathStr string) []strin
 	case "pingpong":
 		optClient := fmt.Sprintf("-local=%s,[%s]:%d", d.CIa, d.CAddr, d.CPort)
 		optServer := fmt.Sprintf("-remote=%s,[%s]:%d", d.SIa, d.SAddr, d.SPort)
-		command = append(command, installpath, optServer, optClient)
+		command = append(command, installpath, optServer, optClient, "-count=1")
 		if len(pathStr) > 0 {
 			// if path choice provided, use interactive mode
 			command = append(command, "-i")
