@@ -113,7 +113,7 @@ function showOnlyConsoleGraphs(activeApp) {
     $('#bwtest-continuous').css("display",
             (activeApp == "bwtester") ? "block" : "none");
     var isConsole = (activeApp == "bwtester" || activeApp == "camerapp"
-            || activeApp == "sensorapp" || activeApp == "echo");
+            || activeApp == "sensorapp" || activeApp == "pingpong");
     $('.stdout').css("display", isConsole ? "block" : "none");
 }
 
@@ -427,7 +427,7 @@ function command(continuous) {
         name : "apps",
         value : activeApp
     });
-    if (activeApp == "bwtester" || activeApp == "echo") {
+    if (activeApp == "bwtester" || activeApp == "pingpong") {
         // add extra bwtester options required
         form_data.push({
             name : "continuous",
@@ -446,10 +446,10 @@ function command(continuous) {
             value : getIntervalMax()
         });
     }
-    if (activeApp == "echo") {
+    if (activeApp == "pingpong") {
         form_data.push({
             name : "interval",
-            value : $('#echo_sec').val()
+            value : $('#pingpong_sec').val()
         });
     }
     if (activeApp == "camerapp") {
@@ -476,9 +476,9 @@ function command(continuous) {
         } else if (activeApp == "bwtester") {
             // check for usable data for graphing
             handleBwResponse(resp, continuous, startTime);
-        } else if (activeApp == "echo") {
+        } else if (activeApp == "pingpong") {
 
-            // TODO (mwfarb): implement continuous echo graph
+            // TODO (mwfarb): implement continuous pingpong graph
 
         } else {
             handleGeneralResponse();
@@ -522,14 +522,14 @@ function lockTab(href) {
     enableTab("bwtester", "bwtester" == href);
     enableTab("camerapp", "camerapp" == href);
     enableTab("sensorapp", "sensorapp" == href);
-    enableTab("echo", "echo" == href);
+    enableTab("pingpong", "pingpong" == href);
 }
 
 function releaseTabs() {
     enableTab("bwtester", true);
     enableTab("camerapp", true);
     enableTab("sensorapp", true);
-    enableTab("echo", true);
+    enableTab("pingpong", true);
 }
 
 function enableTab(href, enable) {

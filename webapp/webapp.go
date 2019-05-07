@@ -255,12 +255,12 @@ func parseRequest2BwtestItem(r *http.Request, appSel string) (*model.BwTestItem,
 
 func parseBwTest2Cmd(d *model.BwTestItem, appSel string, pathStr string) []string {
 	var command []string
-	binname := getClientLocationBin(appSel)
+	installpath := getClientLocationBin(appSel)
 	switch appSel {
 	case "bwtester", "camerapp", "sensorapp":
 		optClient := fmt.Sprintf("-c=%s,[%s]:%d", d.CIa, d.CAddr, d.CPort)
 		optServer := fmt.Sprintf("-s=%s,[%s]:%d", d.SIa, d.SAddr, d.SPort)
-		command = append(command, binname, optServer, optClient)
+		command = append(command, installpath, optServer, optClient)
 		if appSel == "bwtester" {
 			bwCS := fmt.Sprintf("-cs=%d,%d,%d,%dbps", d.CSDuration/1000, d.CSPktSize,
 				d.CSPackets, d.CSBandwidth)
@@ -271,6 +271,14 @@ func parseBwTest2Cmd(d *model.BwTestItem, appSel string, pathStr string) []strin
 				// if path choice provided, use interactive mode
 				command = append(command, "-i")
 			}
+		}
+	case "pingpong":
+		optClient := fmt.Sprintf("-local=%s,[%s]:%d", d.CIa, d.CAddr, d.CPort)
+		optServer := fmt.Sprintf("-remote=%s,[%s]:%d", d.SIa, d.SAddr, d.SPort)
+		command = append(command, installpath, optServer, optClient)
+		if len(pathStr) > 0 {
+			// if path choice provided, use interactive mode
+			command = append(command, "-i")
 		}
 	}
 	isdCli, _ := strconv.Atoi(strings.Split(d.CIa, "-")[0])
@@ -360,6 +368,7 @@ func executeCommand(w http.ResponseWriter, r *http.Request) {
 	// execute scion go client app with client/server commands
 	log.Info("Executing:", "command", strings.Join(command, " "))
 	cmd := exec.Command(command[0], command[1:]...)
+	cmd.Dir = getClientLocationCmdDir(appSel)
 
 	log.Info("Chosen Path:", "pathStr", pathStr)
 
@@ -379,14 +388,13 @@ func executeCommand(w http.ResponseWriter, r *http.Request) {
 }
 
 func appsBuildCheck(app string) {
-	binname := getClientLocationBin(app)
-	installpath := path.Join(lib.GOPATH, "bin", binname)
+	filepath := getClientLocationSrc(app)
+	installpath := getClientLocationBin(app)
 	// check for install, and install only if needed
 	if _, err := os.Stat(installpath); os.IsNotExist(err) {
-		filepath := getClientLocationSrc(app)
-		cmd := exec.Command("go", "install")
+		cmd := exec.Command("go", "build")
 		cmd.Dir = path.Dir(filepath)
-		log.Info(fmt.Sprintf("Installing %s...", filepath))
+		log.Info(fmt.Sprintf("Building %s...", filepath))
 		var stdout, stderr bytes.Buffer
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
@@ -404,31 +412,47 @@ func appsBuildCheck(app string) {
 	}
 }
 
+func getClientLocationCmdDir(app string) string {
+	var cmddir string
+	switch app {
+	case "sensorapp":
+		cmddir = path.Join(lib.GOPATH, lib.LABROOT, "sensorapp/sensorfetcher")
+	case "camerapp":
+		cmddir = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher")
+	case "bwtester":
+		cmddir = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient")
+	case "pingpong":
+		cmddir = path.Join(lib.GOPATH, lib.SCIONROOT)
+	}
+	return cmddir
+}
+
 // Parses html selection and returns name of app binary.
 func getClientLocationBin(app string) string {
 	var binname string
 	switch app {
 	case "sensorapp":
-		binname = "sensorfetcher"
+		binname = path.Join(lib.GOPATH, lib.LABROOT, "sensorapp/sensorfetcher/sensorfetcher")
 	case "camerapp":
-		binname = "imagefetcher"
+		binname = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher/imagefetcher")
 	case "bwtester":
-		binname = "bwtestclient"
+		binname = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient/bwtestclient")
+	case "pingpong":
+		binname = path.Join(lib.GOPATH, lib.SCIONROOT, "bin/pingpong")
 	}
 	return binname
 }
 
 // Parses html selection and returns location of app source.
 func getClientLocationSrc(app string) string {
-	slroot := "src/github.com/netsec-ethz/scion-apps"
 	var filepath string
 	switch app {
 	case "sensorapp":
-		filepath = path.Join(lib.GOPATH, slroot, "sensorapp/sensorfetcher/sensorfetcher.go")
+		filepath = path.Join(lib.GOPATH, lib.LABROOT, "sensorapp/sensorfetcher/sensorfetcher.go")
 	case "camerapp":
-		filepath = path.Join(lib.GOPATH, slroot, "camerapp/imagefetcher/imagefetcher.go")
+		filepath = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher/imagefetcher.go")
 	case "bwtester":
-		filepath = path.Join(lib.GOPATH, slroot, "bwtester/bwtestclient/bwtestclient.go")
+		filepath = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient/bwtestclient.go")
 	}
 	return filepath
 }
