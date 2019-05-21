@@ -103,6 +103,8 @@ function initBwGraphs() {
             csColAch);
     chartSC = drawBwtestSingleDir('sc', 'download (mbps)', true, scColReq,
             scColAch);
+    var chartSE = drawPingGraph('echo-graph');
+    var chartPP = drawPingGraph('pingpong-graph');
     // setup interval to manage smooth ticking
     lastTime = (new Date()).getTime() - (ticks * tickMs) + xLeftTrimMs;
     manageTickData();
@@ -112,6 +114,10 @@ function initBwGraphs() {
 function showOnlyConsoleGraphs(activeApp) {
     $('#bwtest-continuous').css("display",
             (activeApp == "bwtester") ? "block" : "none");
+    $('#echo-continuous').css("display",
+            (activeApp == "echo") ? "block" : "none");
+    $('#pingpong-continuous').css("display",
+            (activeApp == "pingpong") ? "block" : "none");
     var isConsole = (activeApp == "bwtester" || activeApp == "camerapp"
             || activeApp == "sensorapp" || activeApp == "echo" || activeApp == "pingpong");
     $('.stdout').css("display", isConsole ? "block" : "none");
@@ -138,7 +144,7 @@ function handleSwitchContTest(checked) {
         // starts continuous tests
         manageTestData();
     } else {
-        // end continuous tests
+        // end continuous testsi
         command(false);
         enableTestControls(true);
         releaseTabs();
@@ -229,6 +235,42 @@ function drawBwtestSingleDir(dir, yAxisLabel, legend, reqCol, achCol) {
                     return Highcharts.numberFormat(this.y, 2)
                 },
             },
+        } ]
+    });
+    return chart;
+}
+
+function drawPingGraph(div_id) {
+    var chart = Highcharts.chart(div_id, {
+        chart : {
+            type : 'column'
+        },
+        title : {
+            text : null
+        },
+        xAxis : {
+            type : 'category',
+            labels : {
+                rotation : -45
+            }
+        },
+        yAxis : {
+            min : 0,
+            title : {
+                text : 'Response (ms)'
+            }
+        },
+        legend : {
+            enabled : false
+        },
+        series : [ {
+            name : 'Message ID',
+            data : [ [ '1', 24.2 ], [ '2', 20.8 ], [ '3', 14.9 ],
+                    [ '4', 13.7 ], [ '5', 13.1 ], [ '6', 12.7 ], [ '7', 12.4 ],
+                    [ '8', 12.2 ], [ '9', 12.0 ], [ '10', 11.7 ] ],
+            dataLabels : {
+                enabled : true,
+            }
         } ]
     });
     return chart;
@@ -484,10 +526,12 @@ function command(continuous) {
             // check for usable data for graphing
             handleBwResponse(resp, continuous, startTime);
         } else if (activeApp == "echo") {
+            handleGeneralResponse();
 
             // TODO (mwfarb): implement continuous echo graph
 
         } else if (activeApp == "pingpong") {
+            handleGeneralResponse();
 
             // TODO (mwfarb): implement continuous pingpong graph
 

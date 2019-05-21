@@ -66,6 +66,22 @@ svg.svg-dials {
  overflow: scroll;
 }
 
+/* TAB ECHO */
+#echo-continuous .chart {
+ height: 200px;
+ width: 698px;
+ overflow: hidden;
+ float: left;
+}
+
+/* TAB PINGPONG */
+#pingpong-continuous .chart {
+ height: 200px;
+ width: 698px;
+ overflow: hidden;
+ float: left;
+}
+
 /* TAB BWTESTER */
 .bwtest-dial {
  width: 100px;
