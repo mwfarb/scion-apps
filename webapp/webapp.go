@@ -4,7 +4,7 @@ package main
 
 import (
 	"bufio"
-	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -229,15 +229,34 @@ func trcHandler(w http.ResponseWriter, r *http.Request) {
 	display(w, "trc", &Page{Title: "SCIONLab TRC", MyIA: myIa})
 }
 
-func parseRequest2BwtestItem(r *http.Request, appSel string) (*model.BwTestItem, string) {
-	d := new(model.BwTestItem)
+// There're two CmdItem, BwTestItem and EchoItem
+func parseRequest2CmdItem(r *http.Request, appSel string) (model.CmdItem, string) {
+	addlOpt := r.PostFormValue("addlOpt")
+
+	if appSel == "echo" { // ###need to be confirmed###
+		d := model.EchoItem{}
+		d.SIa = r.PostFormValue("ia_ser")
+		d.CIa = r.PostFormValue("ia_cli")
+		d.SAddr = r.PostFormValue("addr_ser")
+		d.CAddr = r.PostFormValue("addr_cli")
+
+		// TODO: parse flags (count, interval, duration from http request)
+		// If no flags set then set the default value
+		d.Count = 1
+		d.Interval = 1
+		d.Timeout = 2
+
+		return d, addlOpt
+	}
+
+	d := model.BwTestItem{}
 	d.SIa = r.PostFormValue("ia_ser")
 	d.CIa = r.PostFormValue("ia_cli")
 	d.SAddr = r.PostFormValue("addr_ser")
 	d.CAddr = r.PostFormValue("addr_cli")
 	d.SPort, _ = strconv.Atoi(r.PostFormValue("port_ser"))
 	d.CPort, _ = strconv.Atoi(r.PostFormValue("port_cli"))
-	addlOpt := r.PostFormValue("addlOpt")
+
 	if appSel == "bwtester" {
 		d.CSDuration, _ = strconv.Atoi(r.PostFormValue("dial-cs-sec"))
 		d.CSPktSize, _ = strconv.Atoi(r.PostFormValue("dial-cs-size"))
@@ -253,11 +272,18 @@ func parseRequest2BwtestItem(r *http.Request, appSel string) (*model.BwTestItem,
 	return d, addlOpt
 }
 
-func parseBwTest2Cmd(d *model.BwTestItem, appSel string, pathStr string) []string {
+// d could be either model.BwTestItem or model.EchoItem
+func parseCmdItem2Cmd(dOrinial model.CmdItem, appSel string, pathStr string) []string {
 	var command []string
+	var isdCli int
 	installpath := getClientLocationBin(appSel)
 	switch appSel {
 	case "bwtester", "camerapp", "sensorapp":
+		d, ok := dOrinial.(model.BwTestItem)
+		if !ok {
+			fmt.Println("Parsing error, CmdItem category doesn't match its name")
+			return nil
+		}
 		optClient := fmt.Sprintf("-c=%s,[%s]:%d", d.CIa, d.CAddr, d.CPort)
 		optServer := fmt.Sprintf("-s=%s,[%s]:%d", d.SIa, d.SAddr, d.SPort)
 		command = append(command, installpath, optServer, optClient)
@@ -272,7 +298,30 @@ func parseBwTest2Cmd(d *model.BwTestItem, appSel string, pathStr string) []strin
 				command = append(command, "-i")
 			}
 		}
+		isdCli, _ = strconv.Atoi(strings.Split(d.CIa, "-")[0])
+
+	case "echo":
+		d, ok := dOrinial.(model.EchoItem)
+		if !ok {
+			fmt.Println("Parsing error, CmdItem category doesn't match its name")
+			return nil
+		}
+		optApp := "echo"
+		optLocal := fmt.Sprintf("-local=%s,[%s]", d.CIa, d.CAddr)
+		optRemote := fmt.Sprintf("-remote=%s,[%s]", d.SIa, d.SAddr)
+		optCount := fmt.Sprintf("-c=%d", d.Count)
+		optTimeout := fmt.Sprintf("-timeout=%ds", d.Timeout)
+		optInterval := fmt.Sprintf("-interval=%ds", d.Interval)
+		// command = append(command, binname, optApp, optRemote, optLocal, optCount)
+		command = append(command, installpath, optApp, optRemote, optLocal, optCount, optTimeout, optInterval)
+		isdCli, _ = strconv.Atoi(strings.Split(d.CIa, "-")[0])
+
 	case "pingpong":
+		d, ok := dOrinial.(model.BwTestItem)
+		if !ok {
+			fmt.Println("Parsing error, CmdItem category doesn't match its name")
+			return nil
+		}
 		optClient := fmt.Sprintf("-local=%s,[%s]:%d", d.CIa, d.CAddr, d.CPort)
 		optServer := fmt.Sprintf("-remote=%s,[%s]:%d", d.SIa, d.SAddr, d.SPort)
 		command = append(command, installpath, optServer, optClient, "-count=1")
@@ -280,8 +329,9 @@ func parseBwTest2Cmd(d *model.BwTestItem, appSel string, pathStr string) []strin
 			// if path choice provided, use interactive mode
 			command = append(command, "-i")
 		}
+		isdCli, _ = strconv.Atoi(strings.Split(d.CIa, "-")[0])
 	}
-	isdCli, _ := strconv.Atoi(strings.Split(d.CIa, "-")[0])
+
 	if isdCli < 16 {
 		// -sciondFromIA is better for localhost testing, with test isds
 		command = append(command, "-sciondFromIA")
@@ -361,14 +411,16 @@ func executeCommand(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	appSel := r.PostFormValue("apps")
 	pathStr := r.PostFormValue("pathStr")
-	d, addlOpt := parseRequest2BwtestItem(r, appSel)
-	command := parseBwTest2Cmd(d, appSel, pathStr)
-	command = append(command, addlOpt)
+	d, addlOpt := parseRequest2CmdItem(r, appSel)
+	command := parseCmdItem2Cmd(d, appSel, pathStr)
+	if addlOpt != "" {
+		command = append(command, addlOpt)
+	}
 
 	// execute scion go client app with client/server commands
 	log.Info("Executing:", "command", strings.Join(command, " "))
 	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Dir = getClientLocationCmdDir(appSel)
+	cmd.Dir = getClientCwd(appSel)
 
 	log.Info("Chosen Path:", "pathStr", pathStr)
 
@@ -382,49 +434,40 @@ func executeCommand(w http.ResponseWriter, r *http.Request) {
 	err = cmd.Start()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start err=%v", err)
+		if w != nil {
+			w.Write([]byte(err.Error() + "\n"))
+		}
 	}
 	go writeCmdOutput(w, reader, stdin, d, appSel, pathStr, cmd)
 	cmd.Wait()
 }
 
 func appsBuildCheck(app string) {
-	filepath := getClientLocationSrc(app)
 	installpath := getClientLocationBin(app)
-	// check for install, and install only if needed
 	if _, err := os.Stat(installpath); os.IsNotExist(err) {
-		cmd := exec.Command("go", "build")
-		cmd.Dir = path.Dir(filepath)
-		log.Info(fmt.Sprintf("Building %s...", filepath))
-		var stdout, stderr bytes.Buffer
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
-		err := cmd.Run()
 		CheckError(err)
-		outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
-		if len(outStr) > 0 {
-			log.Info(outStr)
-		}
-		if len(errStr) > 0 {
-			log.Error(errStr)
-		}
+		CheckError(errors.New("App missing, build all apps with 'deps.sh' and 'make'."))
 	} else {
 		log.Info(fmt.Sprintf("Existing install, found %s...", app))
 	}
 }
 
-func getClientLocationCmdDir(app string) string {
-	var cmddir string
+// Parses html selection and returns current working directory for execution.
+func getClientCwd(app string) string {
+	var cwd string
 	switch app {
 	case "sensorapp":
-		cmddir = path.Join(lib.GOPATH, lib.LABROOT, "sensorapp/sensorfetcher")
+		cwd = path.Join(lib.GOPATH, lib.LABROOT, "sensorapp/sensorfetcher")
 	case "camerapp":
-		cmddir = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher")
+		cwd = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher")
 	case "bwtester":
-		cmddir = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient")
+		cwd = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient")
+	case "echo":
+		cwd = path.Join(lib.GOPATH, lib.SCIONROOT, "bin")
 	case "pingpong":
-		cmddir = path.Join(lib.GOPATH, lib.SCIONROOT)
+		cwd = path.Join(lib.GOPATH, lib.SCIONROOT, "bin")
 	}
-	return cmddir
+	return cwd
 }
 
 // Parses html selection and returns name of app binary.
@@ -437,28 +480,16 @@ func getClientLocationBin(app string) string {
 		binname = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher/imagefetcher")
 	case "bwtester":
 		binname = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient/bwtestclient")
+	case "echo":
+		binname = path.Join(lib.GOPATH, lib.SCIONROOT, "bin/scmp")
 	case "pingpong":
 		binname = path.Join(lib.GOPATH, lib.SCIONROOT, "bin/pingpong")
 	}
 	return binname
 }
 
-// Parses html selection and returns location of app source.
-func getClientLocationSrc(app string) string {
-	var filepath string
-	switch app {
-	case "sensorapp":
-		filepath = path.Join(lib.GOPATH, lib.LABROOT, "sensorapp/sensorfetcher/sensorfetcher.go")
-	case "camerapp":
-		filepath = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher/imagefetcher.go")
-	case "bwtester":
-		filepath = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient/bwtestclient.go")
-	}
-	return filepath
-}
-
 // Handles piping command line output to logs, database, and http response writer.
-func writeCmdOutput(w http.ResponseWriter, reader io.Reader, stdin io.WriteCloser, d *model.BwTestItem, appSel string, pathStr string, cmd *exec.Cmd) {
+func writeCmdOutput(w http.ResponseWriter, reader io.Reader, stdin io.WriteCloser, d model.CmdItem, appSel string, pathStr string, cmd *exec.Cmd) {
 	// regex to find matching path in interactive mode
 	var errMsg string
 	// reAvailPath := `(?i:\[ *[0-9]*\] hops:)`
@@ -482,6 +513,7 @@ func writeCmdOutput(w http.ResponseWriter, reader io.Reader, stdin io.WriteClose
 		// read each line from stdout
 		line := scanner.Text()
 		log.Info(line)
+		fmt.Fprintln(os.Stdout, line)
 
 		jsonBuf = append(jsonBuf, []byte(line+"\n")...)
 		// http write response
@@ -524,16 +556,40 @@ func writeCmdOutput(w http.ResponseWriter, reader io.Reader, stdin io.WriteClose
 
 	if appSel == "bwtester" {
 		// parse bwtester data/error
-		lib.ExtractBwtestRespData(string(jsonBuf), d, start)
+		d, ok := d.(model.BwTestItem)
+		if !ok {
+			fmt.Println("Parsing error, CmdItem category doesn't match its name")
+			return
+		}
+		lib.ExtractBwtestRespData(string(jsonBuf), &d, start)
 		if len(errMsg) > 0 {
 			d.Error = errMsg
 		}
 		// store in database
-		err := model.StoreBwTestItem(d)
+		err := model.StoreBwTestItem(&d)
 		if CheckError(err) {
 			d.Error = err.Error()
 		}
-		lib.WriteBwtestCsv(d, *staticRoot)
+		lib.WriteBwtestCsv(&d, *staticRoot)
+	}
+
+	if appSel == "echo" {
+		// parse scmp echo data/error
+		d, ok := d.(model.EchoItem)
+		if !ok {
+			fmt.Println("Parsing error, CmdItem category doesn't match its name")
+			return
+		}
+		lib.ExtractEchoRespData(string(jsonBuf), &d)
+		if len(errMsg) > 0 {
+			d.Error = errMsg
+		}
+		// store in database
+		err := model.StoreEchoItem(&d)
+		if CheckError(err) {
+			d.Error = err.Error()
+		}
+
 	}
 }
 

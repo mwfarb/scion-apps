@@ -113,7 +113,7 @@ function showOnlyConsoleGraphs(activeApp) {
     $('#bwtest-continuous').css("display",
             (activeApp == "bwtester") ? "block" : "none");
     var isConsole = (activeApp == "bwtester" || activeApp == "camerapp"
-            || activeApp == "sensorapp" || activeApp == "pingpong");
+            || activeApp == "sensorapp" || activeApp == "echo" || activeApp == "pingpong");
     $('.stdout').css("display", isConsole ? "block" : "none");
 }
 
@@ -309,7 +309,7 @@ function manageTestData() {
                 if (d.graph != null) {
                     // write data on graph
                     for (var i = 0; i < d.graph.length; i++) {
-                        if (d.graph[i].Log != null) {
+                        if (d.graph[i].Log != null && d.graph[i].Log != "") {
                             // result returned, display it and reset progress
                             handleEndCmdDisplay(d.graph[i].Log);
                         }
@@ -427,7 +427,8 @@ function command(continuous) {
         name : "apps",
         value : activeApp
     });
-    if (activeApp == "bwtester" || activeApp == "pingpong") {
+    if (activeApp == "bwtester" || activeApp == "echo"
+            || activeApp == "pingpong") {
         // add extra bwtester options required
         form_data.push({
             name : "continuous",
@@ -444,6 +445,12 @@ function command(continuous) {
         form_data.push({
             name : "interval",
             value : getIntervalMax()
+        });
+    }
+    if (activeApp == "echo") {
+        form_data.push({
+            name : "interval",
+            value : $('#echo_sec').val()
         });
     }
     if (activeApp == "pingpong") {
@@ -476,6 +483,10 @@ function command(continuous) {
         } else if (activeApp == "bwtester") {
             // check for usable data for graphing
             handleBwResponse(resp, continuous, startTime);
+        } else if (activeApp == "echo") {
+
+            // TODO (mwfarb): implement continuous echo graph
+
         } else if (activeApp == "pingpong") {
 
             // TODO (mwfarb): implement continuous pingpong graph
@@ -522,6 +533,7 @@ function lockTab(href) {
     enableTab("bwtester", "bwtester" == href);
     enableTab("camerapp", "camerapp" == href);
     enableTab("sensorapp", "sensorapp" == href);
+    enableTab("echo", "echo" == href);
     enableTab("pingpong", "pingpong" == href);
 }
 
@@ -529,6 +541,7 @@ function releaseTabs() {
     enableTab("bwtester", true);
     enableTab("camerapp", true);
     enableTab("sensorapp", true);
+    enableTab("echo", true);
     enableTab("pingpong", true);
 }
 
