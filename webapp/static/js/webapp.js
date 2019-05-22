@@ -425,9 +425,10 @@ function manageTestData() {
                 if (d.graph != null) {
                     // write data on graph
                     for (var i = 0; i < d.graph.length; i++) {
-                        if (d.graph[i].Log != null && d.graph[i].Log != "") {
+                        if (d.graph[i].CmdOutput != null
+                                && d.graph[i].CmdOutput != "") {
                             // result returned, display it and reset progress
-                            handleEndCmdDisplay(d.graph[i].Log);
+                            handleEndCmdDisplay(d.graph[i].CmdOutput);
                         }
                         var data = {
                             'responseTime' : d.graph[i].ResponseTime,
