@@ -7,5 +7,8 @@ from datetime import datetime
 if __name__ == "__main__":
     while (True):
         curtime = datetime.now()
-        print( "Time: " + curtime.strftime('%Y/%m/%d %H:%M:%S'), flush=True )
+        try:
+            print("Time: " + curtime.strftime('%Y/%m/%d %H:%M:%S'), flush=True)
+        except (BrokenPipeError):
+            pass
         time.sleep(1)

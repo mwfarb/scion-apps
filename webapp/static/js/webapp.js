@@ -272,34 +272,13 @@ function drawPingGraph(div_id, yAxisLabel) {
         },
         plotOptions : {
             column : {
-                pointWidth : 11
+                pointWidth : 8
             }
         },
         series : [ {
-            name : 'Message ID',
             data : loadSetupData(),
-            // data : [ [ ' 1 ', 1 ], [ ' 2 ', 2 ], [ ' 3 ', 3 ],
-            // [ ' 4 ', 4 ], [ ' 5 ', 5 ], [ ' 6 ', 6 ],
-            // [ ' 7 ', 7 ], [ ' 8 ', 8 ], [ ' 9 ', 9 ],
-            // [ ' 10 ', 10 ], [ ' 11 ', 11 ], [ ' 12 ', 12 ],
-            // [ ' 13 ', 13 ], [ ' 14 ', 14 ], [ ' 15 ', 15 ],
-            // [ ' 16 ', 16 ], [ ' 17 ', 17 ], [ ' 18 ', 18 ],
-            // [ ' 19 ', 19 ], [ ' 20 ', 20 ], [ ' 21 ', 21 ],
-            // [ ' 22 ', 22 ], [ ' 23 ', 23 ], [ ' 24 ', 24 ],
-            // [ ' 25 ', 25 ], [ ' 26 ', 26 ], [ ' 27 ', 27 ],
-            // [ ' 28 ', 28 ], [ ' 29 ', 29 ], [ ' 30 ', 30 ],
-            // [ ' 31 ', 31 ], [ ' 32 ', 32 ], [ ' 33 ', 33 ],
-            // [ ' 34 ', 34 ], [ ' 35 ', 35 ], [ ' 36 ', 36 ],
-            // [ ' 37 ', 37 ], [ ' 38 ', 38 ], [ ' 39 ', 39 ],
-            // [ ' 40 ', 40 ], [ ' 41 ', 41 ], [ ' 42 ', 42 ],
-            // [ ' 43 ', 43 ], [ ' 44 ', 44 ], [ ' 45 ', 45 ],
-            // [ ' 46 ', 46 ], [ ' 47 ', 47 ], [ ' 48 ', 48 ],
-            // [ ' 49 ', 49 ], [ ' 50 ', 50 ], [ ' 51 ', 51 ],
-            // [ ' 52 ', 52 ], [ ' 53 ', 53 ], [ ' 54 ', 54 ],
-            // [ ' 55 ', 55 ], [ ' 56 ', 56 ], [ ' 57 ', 57 ],
-            // [ ' 58 ', 58 ], [ ' 59 ', 59 ], [ ' 60 ', 60 ], ],
             dataLabels : {
-                enabled : true,
+                enabled : false,
             }
         } ]
     });
@@ -411,6 +390,42 @@ function manageTestData() {
                 }
             }
         });
+        $.post("/getechobytime", form_data, function(json) {
+            d = JSON.parse(json);
+            console.info('resp:', JSON.stringify(d));
+            if (d != null) {
+                if (d.active != null) {
+                    $('#switch_cont').prop("checked", d.active);
+                    if (d.active) {
+                        enableTestControls(false);
+                        lockTab("echo");
+                    } else {
+                        enableTestControls(true);
+                        releaseTabs();
+                        clearInterval(intervalGraphData);
+                    }
+                }
+                if (d.graph != null) {
+                    // write data on graph
+                    for (var i = 0; i < d.graph.length; i++) {
+                        if (d.graph[i].Log != null && d.graph[i].Log != "") {
+                            // result returned, display it and reset progress
+                            handleEndCmdDisplay(d.graph[i].Log);
+                        }
+                        var data = {
+                            'responseTime' : d.graph[i].ResponseTime,
+                            'path' : d.graph[i].Path,
+                            'error' : d.graph[i].Error,
+                        };
+
+                        console.info(JSON.stringify(data));
+                        console.info('continous echo', 'duration:',
+                                d.graph[i].ActualDuration, 'ms');
+                        updatePingGraph(chartSE, data, d.graph[i].Inserted)
+                    }
+                }
+            }
+        });
         lastTimeBwDb = now;
     }, dataIntervalMs);
 }
@@ -441,7 +456,7 @@ function refreshTickData(chart, newTime) {
 
 function removeOldPoints(series, lastTime, draw) {
     for (var i = 0; i < series.data.length; i++) {
-        if (series.data[i].x < lastTime) {
+        if (series.data[i] && series.data[i].x < lastTime) {
             series.removePoint(i, draw);
         }
     }
@@ -484,6 +499,30 @@ function updateBwChart(chart, dataDir, time) {
             x : time,
             y : tp,
             path : dataDir.path,
+        }, draw, shift);
+    }
+}
+
+function updatePingGraph(chart, data, time) {
+    // manually add visible right side ticks, time = now
+    // wait for adding hidden ticks to draw, for consistancy
+    // do not shift points since we manually remove before this
+    var draw = false;
+    var shift = false;
+    if (data.error) {
+        chart.series[0].addPoint({
+            x : time,
+            y : data.responseTime,
+            path : data.path,
+            error : data.error,
+            color : '#f00',
+        }, draw, shift);
+    } else {
+        chart.series[0].addPoint({
+            x : time,
+            y : data.responseTime,
+            path : data.path,
+            color : '#0f0',
         }, draw, shift);
     }
 }
