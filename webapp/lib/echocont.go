@@ -1,6 +1,12 @@
 package lib
 
 import (
+	"encoding/csv"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -8,6 +14,7 @@ import (
 
 	log "github.com/inconshreveable/log15"
 	model "github.com/netsec-ethz/scion-apps/webapp/models"
+	. "github.com/netsec-ethz/scion-apps/webapp/util"
 )
 
 // results data extraction regex
@@ -88,4 +95,57 @@ func ExtractEchoRespData(resp string, d *model.EchoItem) {
 	d.Error = err
 	d.Path = path
 	d.CmdOutput = resp // pipe log output to render in display later
+}
+
+// GetEchoByTimeHandler request the echo results stored since provided time.
+func GetEchoByTimeHandler(w http.ResponseWriter, r *http.Request, active bool, srcpath string) {
+	r.ParseForm()
+	since := r.PostFormValue("since")
+	log.Info("Requesting data since", "timestamp", since)
+	// find undisplayed test results
+	echoResults, err := model.ReadEchoItemsSince(since)
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+	log.Debug("Requested data:", "echoResults", echoResults)
+
+	echosJSON, err := json.Marshal(echoResults)
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+	jsonBuf := []byte(`{ "graph": ` + string(echosJSON))
+	json := []byte(`, "active": ` + strconv.FormatBool(active))
+	jsonBuf = append(jsonBuf, json...)
+	jsonBuf = append(jsonBuf, []byte(`}`)...)
+
+	// ensure % if any, is escaped correctly before writing to printf formatter
+	fmt.Fprintf(w, strings.Replace(string(jsonBuf), "%", "%%", -1))
+}
+
+// WriteEchoCsv appends the echo data in csv-format to srcpath.
+func WriteEchoCsv(echo *model.EchoItem, srcpath string) {
+	// newfile name for every day
+	dataFileEcho := "data/echo-" + time.Now().Format("2006-01-02") + ".csv"
+	bwdataPath := path.Join(srcpath, dataFileEcho)
+	// write headers if file is new
+	writeHeader := false
+	if _, err := os.Stat(dataFileEcho); os.IsNotExist(err) {
+		writeHeader = true
+	}
+	// open/create file
+	f, err := os.OpenFile(bwdataPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if CheckError(err) {
+		return
+	}
+	w := csv.NewWriter(f)
+	// export headers if this is a new file
+	if writeHeader {
+		headers := echo.GetHeaders()
+		w.Write(headers)
+	}
+	values := echo.ToSlice()
+	w.Write(values)
+	w.Flush()
 }

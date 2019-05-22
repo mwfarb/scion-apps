@@ -30,6 +30,8 @@ var dataIntervalMs = 1000;
 var progIntervalMs = 500
 var chartCS;
 var chartSC;
+var chartSE;
+var chartPP;
 var lastTime;
 var lastTimeBwDb = new Date((new Date()).getTime() - (xAxisSec * 1000));
 
@@ -99,12 +101,12 @@ function initBwGraphs() {
     var scColAch = $('#svg-server circle').css("fill");
     var csColReq = $('#svg-cs line').css("stroke");
     var scColReq = $('#svg-sc line').css("stroke");
-    chartCS = drawBwtestSingleDir('cs', 'upload (mbps)', false, csColReq,
+    chartCS = drawBwtestSingleDir('cs', 'Upload (mbps)', false, csColReq,
             csColAch);
-    chartSC = drawBwtestSingleDir('sc', 'download (mbps)', true, scColReq,
+    chartSC = drawBwtestSingleDir('sc', 'Download (mbps)', true, scColReq,
             scColAch);
-    var chartSE = drawPingGraph('echo-graph');
-    var chartPP = drawPingGraph('pingpong-graph');
+    chartSE = drawPingGraph('echo-graph', 'Echo Response (ms)');
+    chartPP = drawPingGraph('pingpong-graph', 'Pingpong Response (ms)');
     // setup interval to manage smooth ticking
     lastTime = (new Date()).getTime() - (ticks * tickMs) + xLeftTrimMs;
     manageTickData();
@@ -240,7 +242,7 @@ function drawBwtestSingleDir(dir, yAxisLabel, legend, reqCol, achCol) {
     return chart;
 }
 
-function drawPingGraph(div_id) {
+function drawPingGraph(div_id, yAxisLabel) {
     var chart = Highcharts.chart(div_id, {
         chart : {
             type : 'column'
@@ -249,15 +251,12 @@ function drawPingGraph(div_id) {
             text : null
         },
         xAxis : {
-            type : 'category',
-            labels : {
-                rotation : -45
-            }
+            type : 'datetime',
         },
         yAxis : {
             min : 0,
             title : {
-                text : 'Response (ms)'
+                text : yAxisLabel
             }
         },
         legend : {
@@ -278,26 +277,27 @@ function drawPingGraph(div_id) {
         },
         series : [ {
             name : 'Message ID',
-            data : [ [ '  1   ', 1 ], [ '  2   ', 2 ], [ '  3   ', 3 ],
-                    [ '  4   ', 4 ], [ '  5   ', 5 ], [ '  6   ', 6 ],
-                    [ '  7   ', 7 ], [ '  8   ', 8 ], [ '  9   ', 9 ],
-                    [ '  10  ', 10 ], [ '  11  ', 11 ], [ '  12  ', 12 ],
-                    [ '  13  ', 13 ], [ '  14  ', 14 ], [ '  15  ', 15 ],
-                    [ '  16  ', 16 ], [ '  17  ', 17 ], [ '  18  ', 18 ],
-                    [ '  19  ', 19 ], [ '  20  ', 20 ], [ '  21  ', 21 ],
-                    [ '  22  ', 22 ], [ '  23  ', 23 ], [ '  24  ', 24 ],
-                    [ '  25  ', 25 ], [ '  26  ', 26 ], [ '  27  ', 27 ],
-                    [ '  28  ', 28 ], [ '  29  ', 29 ], [ '  30  ', 30 ],
-                    [ '  31  ', 31 ], [ '  32  ', 32 ], [ '  33  ', 33 ],
-                    [ '  34  ', 34 ], [ '  35  ', 35 ], [ '  36  ', 36 ],
-                    [ '  37  ', 37 ], [ '  38  ', 38 ], [ '  39  ', 39 ],
-                    [ '  40  ', 40 ], [ '  41  ', 41 ], [ '  42  ', 42 ],
-                    [ '  43  ', 43 ], [ '  44  ', 44 ], [ '  45  ', 45 ],
-                    [ '  46  ', 46 ], [ '  47  ', 47 ], [ '  48  ', 48 ],
-                    [ '  49  ', 49 ], [ '  50  ', 50 ], [ '  51  ', 51 ],
-                    [ '  52  ', 52 ], [ '  53  ', 53 ], [ '  54  ', 54 ],
-                    [ '  55  ', 55 ], [ '  56  ', 56 ], [ '  57  ', 57 ],
-                    [ '  58  ', 58 ], [ '  59  ', 59 ], [ '  60  ', 60 ], ],
+            data : loadSetupData(),
+            // data : [ [ ' 1 ', 1 ], [ ' 2 ', 2 ], [ ' 3 ', 3 ],
+            // [ ' 4 ', 4 ], [ ' 5 ', 5 ], [ ' 6 ', 6 ],
+            // [ ' 7 ', 7 ], [ ' 8 ', 8 ], [ ' 9 ', 9 ],
+            // [ ' 10 ', 10 ], [ ' 11 ', 11 ], [ ' 12 ', 12 ],
+            // [ ' 13 ', 13 ], [ ' 14 ', 14 ], [ ' 15 ', 15 ],
+            // [ ' 16 ', 16 ], [ ' 17 ', 17 ], [ ' 18 ', 18 ],
+            // [ ' 19 ', 19 ], [ ' 20 ', 20 ], [ ' 21 ', 21 ],
+            // [ ' 22 ', 22 ], [ ' 23 ', 23 ], [ ' 24 ', 24 ],
+            // [ ' 25 ', 25 ], [ ' 26 ', 26 ], [ ' 27 ', 27 ],
+            // [ ' 28 ', 28 ], [ ' 29 ', 29 ], [ ' 30 ', 30 ],
+            // [ ' 31 ', 31 ], [ ' 32 ', 32 ], [ ' 33 ', 33 ],
+            // [ ' 34 ', 34 ], [ ' 35 ', 35 ], [ ' 36 ', 36 ],
+            // [ ' 37 ', 37 ], [ ' 38 ', 38 ], [ ' 39 ', 39 ],
+            // [ ' 40 ', 40 ], [ ' 41 ', 41 ], [ ' 42 ', 42 ],
+            // [ ' 43 ', 43 ], [ ' 44 ', 44 ], [ ' 45 ', 45 ],
+            // [ ' 46 ', 46 ], [ ' 47 ', 47 ], [ ' 48 ', 48 ],
+            // [ ' 49 ', 49 ], [ ' 50 ', 50 ], [ ' 51 ', 51 ],
+            // [ ' 52 ', 52 ], [ ' 53 ', 53 ], [ ' 54 ', 54 ],
+            // [ ' 55 ', 55 ], [ ' 56 ', 56 ], [ ' 57 ', 57 ],
+            // [ ' 58 ', 58 ], [ ' 59 ', 59 ], [ ' 60 ', 60 ], ],
             dataLabels : {
                 enabled : true,
             }
@@ -339,6 +339,8 @@ function manageTickData() {
         var newTime = (new Date()).getTime();
         refreshTickData(chartCS, newTime);
         refreshTickData(chartSC, newTime);
+        refreshTickData(chartSE, newTime);
+        refreshTickData(chartPP, newTime);
     }, tickMs);
 }
 
@@ -423,14 +425,18 @@ function refreshTickData(chart, newTime) {
     // manually remove all left side ticks < left side time
     // wait for adding hidden ticks to draw
     var draw = false;
-    removeOldPoints(series0, lastTime, draw);
-    removeOldPoints(series1, lastTime, draw);
+    if (series0)
+        removeOldPoints(series0, lastTime, draw);
+    if (series1)
+        removeOldPoints(series1, lastTime, draw);
     // manually add hidden right side ticks, time = now
     // do all drawing here to avoid accordioning redraws
     // do not shift points since we manually remove before this
     draw = true;
-    series0.addPoint([ x, y ], draw, shift);
-    series1.addPoint([ x, y ], draw, shift);
+    if (series0)
+        series0.addPoint([ x, y ], draw, shift);
+    if (series1)
+        series1.addPoint([ x, y ], draw, shift);
 }
 
 function removeOldPoints(series, lastTime, draw) {

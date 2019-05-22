@@ -142,6 +142,7 @@ func main() {
 	http.HandleFunc("/getbwbytime", getBwByTimeHandler)
 	http.HandleFunc("/healthcheck", healthCheckHandler)
 	http.HandleFunc("/dirview", dirViewHandler)
+	http.HandleFunc("/getechobytime", getEchoByTimeHandler)
 
 	//ported from scion-viz
 	http.HandleFunc("/config", lib.ConfigHandler)
@@ -599,6 +600,10 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
 func getBwByTimeHandler(w http.ResponseWriter, r *http.Request) {
 	lib.GetBwByTimeHandler(w, r, bwActive, *staticRoot)
+}
+
+func getEchoByTimeHandler(w http.ResponseWriter, r *http.Request) {
+	lib.GetEchoByTimeHandler(w, r, bwActive, *staticRoot)
 }
 
 // Handles locating most recent image formatting it for graphic display in response.
