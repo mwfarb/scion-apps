@@ -116,6 +116,7 @@ function initBwGraphs() {
 function showOnlyConsoleGraphs(activeApp) {
     $('#bwtest-continuous').css("display",
             (activeApp == "bwtester") ? "block" : "none");
+    $('#images').css("display", (activeApp == "camerapp") ? "block" : "none");
     $('#echo-continuous').css("display",
             (activeApp == "echo") ? "block" : "none");
     $('#pingpong-continuous').css("display",
@@ -620,17 +621,13 @@ function command(continuous) {
             handleImageResponse(resp);
         } else if (activeApp == "bwtester") {
             // check for usable data for graphing
-            handleBwResponse(resp, continuous, startTime);
+            handleContResponse(resp, continuous, startTime);
         } else if (activeApp == "echo") {
-            handleGeneralResponse();
-
-            // TODO (mwfarb): implement continuous echo graph
-
+            // check for usable data for graphing
+            handleContResponse(resp, continuous, startTime);
         } else if (activeApp == "pingpong") {
-            handleGeneralResponse();
-
-            // TODO (mwfarb): implement continuous pingpong graph
-
+            // check for usable data for graphing
+            handleContResponse(resp, continuous, startTime);
         } else {
             handleGeneralResponse();
         }
@@ -719,7 +716,7 @@ function getIntervalMax() {
     return max;
 }
 
-function handleBwResponse(resp, continuous, startTime) {
+function handleContResponse(resp, continuous, startTime) {
     // check for continuous testing
     var checked = $('#switch_cont').prop('checked');
     if (!checked && !commandProg) {
