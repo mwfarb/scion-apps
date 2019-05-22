@@ -198,7 +198,7 @@ function drawBwtestSingleDir(dir, yAxisLabel, legend, reqCol, achCol) {
         } ],
         tooltip : {
             enabled : true,
-            formatter : formatTooltip,
+            formatter : formatBwTooltip,
         },
         legend : {
             y : -15,
@@ -262,6 +262,10 @@ function drawPingGraph(div_id, yAxisLabel) {
         legend : {
             enabled : false
         },
+        tooltip : {
+            enabled : true,
+            formatter : formatPingTooltip,
+        },
         credits : {
             enabled : true,
             text : 'Download Data',
@@ -276,6 +280,7 @@ function drawPingGraph(div_id, yAxisLabel) {
             }
         },
         series : [ {
+            name : yAxisLabel,
             data : loadSetupData(),
             dataLabels : {
                 enabled : false,
@@ -285,10 +290,21 @@ function drawPingGraph(div_id, yAxisLabel) {
     return chart;
 }
 
-function formatTooltip() {
+function formatBwTooltip() {
     var tooltip = '<b>' + this.series.name + '</b><br/>'
             + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>'
             + Highcharts.numberFormat(this.y, 2) + ' mbps<br/><i>'
+            + this.point.path + '</i>';
+    if (this.point.error != null) {
+        tooltip += '<br/><b>' + this.point.error + '</b>';
+    }
+    return tooltip;
+}
+
+function formatPingTooltip() {
+    var tooltip = '<b>' + this.series.name + '</b><br/>'
+            + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>'
+            + Highcharts.numberFormat(this.y, 2) + ' ms<br/><i>'
             + this.point.path + '</i>';
     if (this.point.error != null) {
         tooltip += '<br/><b>' + this.point.error + '</b>';
