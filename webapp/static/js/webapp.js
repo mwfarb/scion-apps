@@ -304,8 +304,9 @@ function formatBwTooltip() {
 function formatPingTooltip() {
     var tooltip = '<b>' + this.series.name + '</b><br/>'
             + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>'
-            + Highcharts.numberFormat(this.y, 2) + ' ms<br/><i>'
-            + this.point.path + '</i>';
+            + Highcharts.numberFormat(this.y, 0) + ' ms<br/>'
+            + Highcharts.numberFormat(this.point.loss, 0)
+            + '% packet loss<br/><i>' + this.point.path + '</i>';
     if (this.point.error != null) {
         tooltip += '<br/><b>' + this.point.error + '</b>';
     }
@@ -430,6 +431,7 @@ function manageTestData() {
                         }
                         var data = {
                             'responseTime' : d.graph[i].ResponseTime,
+                            'loss' : d.graph[i].PktLoss,
                             'path' : d.graph[i].Path,
                             'error' : d.graph[i].Error,
                         };
@@ -525,10 +527,11 @@ function updatePingGraph(chart, data, time) {
     // do not shift points since we manually remove before this
     var draw = false;
     var shift = false;
-    if (data.error) {
+    if (data.error || data.loss > 0) {
         chart.series[0].addPoint({
             x : time,
             y : data.responseTime,
+            loss : data.loss,
             path : data.path,
             error : data.error,
             color : '#f00',
@@ -537,6 +540,7 @@ function updatePingGraph(chart, data, time) {
         chart.series[0].addPoint({
             x : time,
             y : data.responseTime,
+            loss : data.loss,
             path : data.path,
             color : '#0f0',
         }, draw, shift);
