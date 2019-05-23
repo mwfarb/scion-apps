@@ -4,6 +4,7 @@ package main
 
 import (
 	"bufio"
+	//"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -425,12 +426,17 @@ func executeCommand(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("Chosen Path:", "pathStr", pathStr)
 
-	cmd.Stderr = os.Stderr
+	//cmd.Stderr = os.Stderr
 	stdin, err := cmd.StdinPipe()
 	CheckError(err)
 	stdout, err := cmd.StdoutPipe()
 	CheckError(err)
 	reader := bufio.NewReader(stdout)
+
+	//	var b bytes.Buffer
+	//	cmd.Stdout = &b
+	//	cmd.Stderr = &b
+	//	reader := bufio.NewReader(&b)
 
 	err = cmd.Start()
 	if err != nil {
@@ -514,7 +520,7 @@ func writeCmdOutput(w http.ResponseWriter, reader io.Reader, stdin io.WriteClose
 		// read each line from stdout
 		line := scanner.Text()
 		log.Info(line)
-		fmt.Fprintln(os.Stdout, line)
+		//fmt.Fprintln(os.Stdout, line)
 
 		jsonBuf = append(jsonBuf, []byte(line+"\n")...)
 		// http write response

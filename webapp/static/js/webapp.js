@@ -88,7 +88,7 @@ function initBwGraphs() {
         setChartUtc(checked);
     });
 
-    updateBwInterval();
+    // updateBwInterval();
 
     // charts update on tab switch
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
@@ -257,6 +257,7 @@ function drawPingGraph(div_id, yAxisLabel) {
         },
         yAxis : {
             min : 0,
+            minTickInterval : 1, // keep 0.1 errors visible
             title : {
                 text : yAxisLabel
             }
@@ -347,6 +348,7 @@ function manageTestData() {
     maxTimeBwDb = (new Date(now - (xAxisSec * 1000))).getTime();
     lastTimeBwDb = (lastTimeBwDb < maxTimeBwDb ? maxTimeBwDb : lastTimeBwDb);
     intervalGraphData = setInterval(function() {
+        var startTime = (new Date()).getTime();
         // update continuous test parameters
         var checked = $('#switch_cont').prop('checked');
         if (checked) {
@@ -363,6 +365,7 @@ function manageTestData() {
         }
         console.info('req:', JSON.stringify(form_data));
         $.post("/getbwbytime", form_data, function(json) {
+            var startTime = (new Date()).getTime();
             d = JSON.parse(json);
             console.info('resp:', JSON.stringify(d));
             if (d != null) {
@@ -438,7 +441,10 @@ function manageTestData() {
                             'path' : d.graph[i].Path,
                             'error' : d.graph[i].Error,
                         };
-
+                        if (data.runTime == 0) {
+                            // TODO: for other errors, use execution time
+                            data.runTime = 0.1;
+                        }
                         console.info(JSON.stringify(data));
                         console.info('continous echo', 'duration:',
                                 d.graph[i].ActualDuration, 'ms');
@@ -530,11 +536,10 @@ function updatePingGraph(chart, data, time) {
     // do not shift points since we manually remove before this
     var draw = false;
     var shift = false;
-    if (data.error || data.loss > 0) {
+    if (data.error || data.loss > 0 || data.responseTime == 0) {
         chart.series[0].addPoint({
             x : time,
-            y : data.responseTime,
-            runTime : data.runTime,
+            y : data.runTime,
             loss : data.loss,
             path : data.path,
             error : data.error,
@@ -543,7 +548,7 @@ function updatePingGraph(chart, data, time) {
     } else {
         chart.series[0].addPoint({
             x : time,
-            y : data.runTime,
+            y : data.responseTime,
             loss : data.loss,
             path : data.path,
             color : '#0f0',
@@ -1033,7 +1038,7 @@ function onchange_sec(dir, v, min, max, lock) {
         }
     }
     // special case: update continuous interval
-    updateBwInterval();
+    // updateBwInterval();
 }
 
 function onchange_size(dir, v, min, max, lock) {
