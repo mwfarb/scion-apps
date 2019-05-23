@@ -18,8 +18,11 @@ import (
 )
 
 // results data extraction regex
-var reRespTimeS = `(packet loss, time )(\d*\.?\d*)(s)`
-var reRespTimeMs = `(packet loss, time )(\d*\.?\d*)(ms)`
+//var reRespTimeS = `(packet loss, time )(\d*\.?\d*)(s)`
+//var reRespTimeMs = `(packet loss, time )(\d*\.?\d*)(ms)`
+var reRespTimeS = `(scmp_seq=0 time=)(\d*\.?\d*)(s)`
+var reRespTimeMs = `(scmp_seq=0 time=)(\d*\.?\d*)(ms)`
+var reRespTimeUs = `(scmp_seq=0 time=)(\d*)(µs)`
 var rePktLoss = `(\d+)(% packet loss,)`
 
 // ExtractEchoRespData will parse cmd line output from scmp echo for adding EchoItem fields.
@@ -41,8 +44,7 @@ func ExtractEchoRespData(resp string, d *model.EchoItem) {
 			re := regexp.MustCompile(reRespTimeS)
 			tStr := re.FindStringSubmatch(r[i])[2]
 			t, _ := strconv.ParseFloat(tStr, 32)
-			tInt := int(t * 1000)
-			data["response_time"] = strconv.Itoa(tInt)
+			data["response_time"] = fmt.Sprintf("%f", (t * 1000))
 		}
 
 		// match response time in unit ms
@@ -51,7 +53,16 @@ func ExtractEchoRespData(resp string, d *model.EchoItem) {
 			re := regexp.MustCompile(reRespTimeMs)
 			tStr := re.FindStringSubmatch(r[i])[2]
 			t, _ := strconv.ParseFloat(tStr, 32)
-			data["response_time"] = strconv.Itoa(int(t))
+			data["response_time"] = fmt.Sprintf("%f", t)
+		}
+
+		// match response time in unit μs
+		match, _ = regexp.MatchString(reRespTimeUs, r[i])
+		if match {
+			re := regexp.MustCompile(reRespTimeUs)
+			tStr := re.FindStringSubmatch(r[i])[2]
+			t, _ := strconv.ParseFloat(tStr, 32)
+			data["response_time"] = fmt.Sprintf("%f", (t / 1000))
 		}
 
 		// match packet loss
@@ -90,7 +101,7 @@ func ExtractEchoRespData(resp string, d *model.EchoItem) {
 	//log.Info("print parsed result", "error", err)
 	//log.Info("print parsed result", "path", path)
 
-	d.ResponseTime, _ = strconv.Atoi(data["response_time"])
+	d.ResponseTime, _ = strconv.ParseFloat(data["response_time"], 32)
 	d.PktLoss, _ = strconv.Atoi(data["packet_loss"])
 	d.Error = err
 	d.Path = path

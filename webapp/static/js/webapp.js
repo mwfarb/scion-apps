@@ -305,8 +305,7 @@ function formatBwTooltip() {
 function formatPingTooltip() {
     var tooltip = '<b>' + this.series.name + '</b><br/>'
             + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>'
-            + Highcharts.numberFormat(this.y, 0) + ' ms<br/>'
-            + Highcharts.numberFormat(this.point.loss, 0)
+            + Highcharts.numberFormat(this.y, 3) + ' ms<br/>' + this.point.loss
             + '% packet loss<br/><i>' + this.point.path + '</i>';
     if (this.point.error != null) {
         tooltip += '<br/><b>' + this.point.error + '</b>';
@@ -572,6 +571,10 @@ function command(continuous) {
         form_data.push({
             name : "continuous",
             value : continuous
+        }, {
+            name : "interval",
+            value : $('#interval_sec').val()
+        // value : getIntervalMax()
         });
         if (self.segType == 'PATH') { // only full paths allowed
             form_data.push({
@@ -579,24 +582,6 @@ function command(continuous) {
                 value : formatPathString(resPath, self.segNum, self.segType)
             });
         }
-    }
-    if (activeApp == "bwtester") {
-        form_data.push({
-            name : "interval",
-            value : getIntervalMax()
-        });
-    }
-    if (activeApp == "echo") {
-        form_data.push({
-            name : "interval",
-            value : $('#echo_sec').val()
-        });
-    }
-    if (activeApp == "pingpong") {
-        form_data.push({
-            name : "interval",
-            value : $('#pingpong_sec').val()
-        });
     }
     if (activeApp == "camerapp") {
         // clear for new image request
@@ -711,7 +696,7 @@ function handleImageResponse(resp) {
 function getIntervalMax() {
     var cs = $('#dial-cs-sec').val();
     var sc = $('#dial-sc-sec').val();
-    var cont = $('#bwtest_sec').val();
+    var cont = $('#interval_sec').val();
     var max = Math.max(cs, sc, cont);
     return max;
 }
@@ -732,14 +717,14 @@ function handleContResponse(resp, continuous, startTime) {
 function updateBwInterval() {
     var cs = $('#dial-cs-sec').val() * 1000;
     var sc = $('#dial-sc-sec').val() * 1000;
-    var cont = $('#bwtest_sec').val() * 1000;
+    var cont = $('#interval_sec').val() * 1000;
     var max = Math.max(cs, sc);
     if (cont != (max + bwIntervalBufMs)) {
-        $('#bwtest_sec').val((max + bwIntervalBufMs) / 1000);
+        $('#interval_sec').val((max + bwIntervalBufMs) / 1000);
     }
     // update interval minimum
     var min = Math.min(cs, sc);
-    $('#bwtest_sec').prop('min', min / 1000);
+    $('#interval_sec').prop('min', min / 1000);
 }
 
 function updateBwErrors(dataDir, dir, err) {

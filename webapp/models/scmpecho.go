@@ -18,12 +18,12 @@ type EchoItem struct {
 	CAddr        string
 	SIa          string
 	SAddr        string
-	Count        int    // Default 1
-	Timeout      int    // s Default 2
-	Interval     int    // s Default 1
-	ResponseTime int    // ms
-	PktLoss      int    // percent Indicating pkt loss rate
-	CmdOutput    string // command output
+	Count        int     // Default 1
+	Timeout      int     // s Default 2
+	Interval     int     // s Default 1
+	ResponseTime float64 // ms
+	PktLoss      int     // percent Indicating pkt loss rate
+	CmdOutput    string  // command output
 	Error        string
 	Path         string
 }
@@ -40,7 +40,7 @@ func createEchoTable() error {
         Count INT,
         Timeout INT,
         Interval INT,
-        ResponseTime INT,
+        ResponseTime REAL,
         PktLoss INT,
         CmdOutput TEXT,
         Error TEXT,

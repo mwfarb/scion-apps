@@ -69,17 +69,15 @@
       <li><a data-toggle="tab" name="camerapp" href="#camerapp">camerapp</a></li>
       <li><a data-toggle="tab" name="sensorapp" href="#sensorapp">sensorapp</a></li>
       <li><a data-toggle="tab" name="echo" href="#echo">echo</a></li>
-      <li><a data-toggle="tab" name="pingpong" href="#pingpong">pingpong</a></li>
+      <!--       <li><a data-toggle="tab" name="pingpong" href="#pingpong">pingpong</a></li>
+ -->
      </ul>
      <div id="tab-content-apps" class="tab-content">
 
       <!-- BANDWIDTH TEST APP CONTENT -->
       <div id="bwtester" class="tab-pane fade in active">
 
-       <span id="bwtest_text"></span><br> Interval: <input
-        name="bwtest_sec" id="bwtest_sec" type="number"
-        style="width: 45px;" min="3" max="11" value="4"> sec.
-
+       <span id="bwtest_text"></span>
 
        <div id="bwtest-cs" class="bwtest-control">
 
@@ -242,9 +240,7 @@
         </svg>
        </div>
 
-       <span id="echo_text"></span><br> Interval: <input
-        name="echo_sec" id="echo_sec" type="number" style="width: 45px;"
-        min="1" max="10" value="1"> sec.
+       <span id="echo_text"></span>
 
       </div>
 
@@ -258,9 +254,7 @@
         </svg>
        </div>
 
-       <span id="pingpong_text"></span><br> Interval: <input
-        name="pingpong_sec" id="pingpong_sec" type="number"
-        style="width: 45px;" min="1" max="10" value="1"> sec.
+       <span id="pingpong_text"></span>
 
       </div>
 
@@ -310,9 +304,11 @@
        <div class="pretty p-switch p-fill">
         <input id="switch_cont" type="checkbox" />
         <div class="state p-success">
-         <label>Run Continuous</label>
+         <label>Run Continuous Interval:</label>
         </div>
        </div>
+       <input name="interval_sec" id="interval_sec" type="number"
+        style="width: 35px;" min="3" max="11" value="1"> sec.
 
        <div class="pretty p-switch">
         <input id="switch_utc" type="checkbox" checked />
@@ -323,7 +319,7 @@
 
        Additional Argument: <span
         tooltip="Use the equal sign, '=', between argument and parameter."><input
-        type="text" id="addl_opt" name="addl_opt" style="width: 200px;">
+        type="text" id="addl_opt" name="addl_opt" style="width: 150px;">
        </span>
 
       </div>
