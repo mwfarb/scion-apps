@@ -587,7 +587,7 @@ func writeCmdOutput(w http.ResponseWriter, reader io.Reader, stdin io.WriteClose
 			fmt.Println("Parsing error, CmdItem category doesn't match its name")
 			return
 		}
-		lib.ExtractEchoRespData(string(jsonBuf), &d)
+		lib.ExtractEchoRespData(string(jsonBuf), &d, start)
 		if len(errMsg) > 0 {
 			d.Error = errMsg
 		}

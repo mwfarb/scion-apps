@@ -13,20 +13,21 @@ type CmdItem interface {
 
 // EchoItem reflects one row in the echo table with all columns
 type EchoItem struct {
-	Inserted     int64 // ms Inserted time
-	CIa          string
-	CAddr        string
-	SIa          string
-	SAddr        string
-	Count        int     // Default 1
-	Timeout      int     // s Default 2
-	Interval     int     // s Default 1
-	ResponseTime float64 // ms
-	RunTime      float64 // ms
-	PktLoss      int     // percent Indicating pkt loss rate
-	CmdOutput    string  // command output
-	Error        string
-	Path         string
+	Inserted       int64 // ms Inserted/completed time
+	ActualDuration int   // ms
+	CIa            string
+	CAddr          string
+	SIa            string
+	SAddr          string
+	Count          int     // Default 1
+	Timeout        int     // s Default 2
+	Interval       int     // s Default 1
+	ResponseTime   float64 // ms
+	RunTime        float64 // ms
+	PktLoss        int     // percent Indicating pkt loss rate
+	CmdOutput      string  // command output
+	Error          string
+	Path           string
 }
 
 // createEchoTable operates on the DB to create the echo table.
@@ -34,6 +35,7 @@ func createEchoTable() error {
 	sqlCreateTable := `
     CREATE TABLE IF NOT EXISTS echo(
         Inserted BIGINT NOT NULL PRIMARY KEY,
+        ActualDuration INT,
         CIa TEXT,
         CAddr TEXT,
         SIa TEXT,
@@ -80,6 +82,7 @@ func StoreEchoItem(echo *EchoItem) error {
 	sqlInsert := `
     INSERT INTO echo(
         Inserted,
+        ActualDuration,
         CIa,
         CAddr,
         SIa,
@@ -93,7 +96,7 @@ func StoreEchoItem(echo *EchoItem) error {
         CmdOutput,
         Error,
         Path
-    ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 	stmt, err := db.Prepare(sqlInsert)
 	if err != nil {
@@ -103,6 +106,7 @@ func StoreEchoItem(echo *EchoItem) error {
 
 	_, err = stmt.Exec(
 		echo.Inserted,
+		echo.ActualDuration,
 		echo.CIa,
 		echo.CAddr,
 		echo.SIa,
@@ -124,6 +128,7 @@ func ReadEchoItemsAll() ([]EchoItem, error) {
 	sqlReadAll := `
     SELECT
         Inserted,
+        ActualDuration,
         CIa,
         CAddr,
         SIa,
@@ -151,6 +156,7 @@ func ReadEchoItemsAll() ([]EchoItem, error) {
 		echo := EchoItem{}
 		err = rows.Scan(
 			&echo.Inserted,
+			&echo.ActualDuration,
 			&echo.CIa,
 			&echo.CAddr,
 			&echo.SIa,
@@ -178,6 +184,7 @@ func ReadEchoItemsSince(since string) ([]EchoItem, error) {
 	sqlReadSince := `
     SELECT
         Inserted,
+        ActualDuration,
         Count,
         Timeout,
         Interval,
@@ -202,6 +209,7 @@ func ReadEchoItemsSince(since string) ([]EchoItem, error) {
 		echo := EchoItem{}
 		err = rows.Scan(
 			&echo.Inserted,
+			&echo.ActualDuration,
 			&echo.Count,
 			&echo.Timeout,
 			&echo.Interval,

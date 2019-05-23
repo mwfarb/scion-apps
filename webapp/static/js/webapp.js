@@ -406,7 +406,10 @@ function manageTestData() {
                         console.info(JSON.stringify(data));
                         console.info('continous bwtester', 'duration:',
                                 d.graph[i].ActualDuration, 'ms');
-                        updateBwGraph(data, d.graph[i].Inserted)
+                        // use the time the test began
+                        var time = d.graph[i].Inserted
+                                - d.graph[i].ActualDuration;
+                        updateBwGraph(data, time)
                     }
                 }
             }
@@ -442,13 +445,16 @@ function manageTestData() {
                             'error' : d.graph[i].Error,
                         };
                         if (data.runTime == 0) {
-                            // TODO: for other errors, use execution time
-                            data.runTime = 0.1;
+                            // for other errors, use execution time
+                            data.runTime = d.graph[i].ActualDuration;
                         }
                         console.info(JSON.stringify(data));
                         console.info('continous echo', 'duration:',
                                 d.graph[i].ActualDuration, 'ms');
-                        updatePingGraph(chartSE, data, d.graph[i].Inserted)
+                        // use the time the test began
+                        var time = d.graph[i].Inserted
+                                - d.graph[i].ActualDuration;
+                        updatePingGraph(chartSE, data, time)
                     }
                 }
             }

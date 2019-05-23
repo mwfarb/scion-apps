@@ -27,7 +27,11 @@ var reRespTimeUs = `(scmp_seq=0 time=)(\d*)(µs)`
 var rePktLoss = `(\d+)(% packet loss,)`
 
 // ExtractEchoRespData will parse cmd line output from scmp echo for adding EchoItem fields.
-func ExtractEchoRespData(resp string, d *model.EchoItem) {
+func ExtractEchoRespData(resp string, d *model.EchoItem, start time.Time) {
+	// store duration in ms
+	diff := time.Now().Sub(start)
+	d.ActualDuration = int(diff.Nanoseconds() / 1e6)
+
 	// store current epoch in ms
 	d.Inserted = time.Now().UnixNano() / 1e6
 
