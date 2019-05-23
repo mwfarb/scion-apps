@@ -60,6 +60,7 @@ var imageText = 'Execute camerapp to retrieve an image.';
 var sensorText = 'Execute sensorapp to retrieve sensor data.';
 var bwgraphsText = 'Click legend to hide/show data when continuous test is on.';
 var cont_disable_msg = 'Continuous testing disabled.'
+var echoText = 'Execute echo to measure response time.';
 
 window.onbeforeunload = function(event) {
     // detect window close to end continuous test if any
@@ -432,6 +433,7 @@ function manageTestData() {
                         }
                         var data = {
                             'responseTime' : d.graph[i].ResponseTime,
+                            'runTime' : d.graph[i].RunTime,
                             'loss' : d.graph[i].PktLoss,
                             'path' : d.graph[i].Path,
                             'error' : d.graph[i].Error,
@@ -532,6 +534,7 @@ function updatePingGraph(chart, data, time) {
         chart.series[0].addPoint({
             x : time,
             y : data.responseTime,
+            runTime : data.runTime,
             loss : data.loss,
             path : data.path,
             error : data.error,
@@ -540,7 +543,7 @@ function updatePingGraph(chart, data, time) {
     } else {
         chart.series[0].addPoint({
             x : time,
-            y : data.responseTime,
+            y : data.runTime,
             loss : data.loss,
             path : data.path,
             color : '#0f0',
@@ -825,6 +828,7 @@ function setDefaults() {
     $('#stats_text').text(sensorText);
     $('#bwtest_text').text(bwText);
     $('#bwgraphs_text').text(bwgraphsText);
+    $('#echo_text').text(echoText);
 
     onchange_radio('cs', 'size');
     onchange_radio('sc', 'size');

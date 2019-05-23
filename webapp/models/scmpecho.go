@@ -22,6 +22,7 @@ type EchoItem struct {
 	Timeout      int     // s Default 2
 	Interval     int     // s Default 1
 	ResponseTime float64 // ms
+	RunTime      float64 // ms
 	PktLoss      int     // percent Indicating pkt loss rate
 	CmdOutput    string  // command output
 	Error        string
@@ -41,6 +42,7 @@ func createEchoTable() error {
         Timeout INT,
         Interval INT,
         ResponseTime REAL,
+        RunTime REAL,
         PktLoss INT,
         CmdOutput TEXT,
         Error TEXT,
@@ -86,11 +88,12 @@ func StoreEchoItem(echo *EchoItem) error {
         Timeout,
         Interval,
         ResponseTime,
+        RunTime,
         PktLoss,
         CmdOutput,
         Error,
         Path
-    ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 	stmt, err := db.Prepare(sqlInsert)
 	if err != nil {
@@ -108,6 +111,7 @@ func StoreEchoItem(echo *EchoItem) error {
 		echo.Timeout,
 		echo.Interval,
 		echo.ResponseTime,
+		echo.RunTime,
 		echo.PktLoss,
 		echo.CmdOutput,
 		echo.Error,
@@ -128,6 +132,7 @@ func ReadEchoItemsAll() ([]EchoItem, error) {
         Timeout,
         Interval,
         ResponseTime,
+        RunTime,
         PktLoss,
         CmdOutput,
         Error,
@@ -154,6 +159,7 @@ func ReadEchoItemsAll() ([]EchoItem, error) {
 			&echo.Timeout,
 			&echo.Interval,
 			&echo.ResponseTime,
+			&echo.RunTime,
 			&echo.PktLoss,
 			&echo.CmdOutput,
 			&echo.Error,
@@ -172,14 +178,11 @@ func ReadEchoItemsSince(since string) ([]EchoItem, error) {
 	sqlReadSince := `
     SELECT
         Inserted,
-        CIa,
-        CAddr,
-        SIa,
-        SAddr,
         Count,
         Timeout,
         Interval,
         ResponseTime,
+        RunTime,
         PktLoss,
         CmdOutput,
         Error,
@@ -199,14 +202,11 @@ func ReadEchoItemsSince(since string) ([]EchoItem, error) {
 		echo := EchoItem{}
 		err = rows.Scan(
 			&echo.Inserted,
-			&echo.CIa,
-			&echo.CAddr,
-			&echo.SIa,
-			&echo.SAddr,
 			&echo.Count,
 			&echo.Timeout,
 			&echo.Interval,
 			&echo.ResponseTime,
+			&echo.RunTime,
 			&echo.PktLoss,
 			&echo.CmdOutput,
 			&echo.Error,
