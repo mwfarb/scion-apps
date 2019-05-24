@@ -107,6 +107,7 @@ func main() {
 	}
 	go model.MaintainDatabase()
 	ensurePath(*staticRoot, "data")
+	ensurePath(*staticRoot, "data/images")
 	// generate client/server default
 	lib.GenClientNodeDefaults(*staticRoot)
 	lib.GenServerNodeDefaults(*staticRoot)
@@ -464,11 +465,11 @@ func getClientCwd(app string) string {
 	var cwd string
 	switch app {
 	case "sensorapp":
-		cwd = path.Join(lib.GOPATH, lib.LABROOT, "sensorapp/sensorfetcher")
+		cwd = path.Join(lib.GOPATH, lib.LABROOT, ".")
 	case "camerapp":
-		cwd = path.Join(lib.GOPATH, lib.LABROOT, "camerapp/imagefetcher")
+		cwd = path.Join(lib.GOPATH, lib.LABROOT, "webapp/data/images")
 	case "bwtester":
-		cwd = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient")
+		cwd = path.Join(lib.GOPATH, lib.LABROOT, ".")
 	case "echo":
 		cwd = path.Join(lib.GOPATH, lib.SCIONROOT, "bin")
 	case "pingpong":
