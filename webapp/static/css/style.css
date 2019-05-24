@@ -2,7 +2,7 @@
 #webapp {
  margin: 0 auto;
  width: 900px;
- /* font-size: 12px; */
+ font-size: 12px;
 }
 
 #error_text.enable {
