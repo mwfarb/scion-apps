@@ -9,12 +9,13 @@ error_exit()
 
 # get the total memory for this virtual machine
 totalMem=$(free | grep 'Mem:' | tr -s ' ' | cut -d ' ' -f2)
+echo "Size of total memory: $((totalMem / 1024000))G."
 
 # test if the total memory is greater than 2G
 if [ "$totalMem" -lt 2048004 ]; then
      error_exit "Error: Total memory less than 2G, please contact us."
 else
-    echo "Test for total memory succeeds. Size of total memory: $((totalMem / 1024000))G."
+    echo "Test for total memory succeeds."
     exit 0
 fi
 

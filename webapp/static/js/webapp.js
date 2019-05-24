@@ -148,7 +148,7 @@ function handleSwitchContTest(checked) {
         // starts continuous tests
         manageTestData();
     } else {
-        // end continuous testsi
+        // end continuous tests
         command(false);
         enableTestControls(true);
         releaseTabs();
