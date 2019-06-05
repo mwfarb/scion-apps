@@ -2,7 +2,7 @@
 #webapp {
  margin: 0 auto;
  width: 900px;
- font-size: 12px;
+ /* font-size: 12px; */
 }
 
 #error_text.enable {
@@ -57,6 +57,7 @@ svg.svg-dials {
  float: left;
  width: 500px;
  height: 150px;
+ font-size: 12px;
 }
 
 .row:after {
@@ -89,11 +90,28 @@ svg.svg-dials {
  margin-top: 15px;
 }
 
+.bw-cs-col, .bw-sc-col {
+  width: 50%;
+}
+
+.bwtest-input {
+ /*
+ width: 50px;
+ display: inline-block;
+ margin-top: 15px;
+ */
+}
+
+.input-sm {
+ width: 60px;
+ padding: 5px;
+}
+
 .bwtest-dials {
  height: 70px;
  width: 500px;
  margin: 0 auto;
- text-align: center;
+ text-align: right;
 }
 
 .label-dial {
@@ -136,6 +154,7 @@ img {
  float: left;
  width: 200px;
  height: 210px;
+ font-size: 12px;
 }
 
 .scion-ia {

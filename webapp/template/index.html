@@ -89,15 +89,15 @@
         </svg>
         </div>
 
-        <div id="dials-cs" class="bwtest-dials">
+        <div id="dials-cs" class="bwtest-dials bw-cs-col">
 
-         <div class="bwtest-dial">
+         <div class="bwtest-input">
           <label for="dial-cs-sec" class="label-dial">seconds</label><input
-           type="text" class="dial" id="dial-cs-sec" name="dial-cs-sec"
+           type="text" class="input-sm" id="dial-cs-sec" name="dial-cs-sec"
            value="3">
          </div>
 
-         <div class="bwtest-dial">
+         <div class="bwtest-input">
           <div class="pretty p-svg p-curve p-pulse">
            <input type="radio" id="cs-radio-size" name="cs-dial"
             value="size" checked>
@@ -106,11 +106,11 @@
              size (b)</label>
            </div>
           </div>
-          <input type="text" class="dial" id="dial-cs-size"
+          <input type="text" class="input-sm" id="dial-cs-size"
            name="dial-cs-size" value="1000">
          </div>
 
-         <div class="bwtest-dial div-pkt">
+         <div class="bwtest-input">
           <div class="pretty p-svg p-curve p-pulse">
            <input type="radio" id="cs-radio-pkt" name="cs-dial"
             value="pkt">
@@ -118,11 +118,11 @@
             <img class="svg" src="static/img/lock-locked.svg"> <label>packets</label>
            </div>
           </div>
-          <input type="text" class="dial" id="dial-cs-pkt"
+          <input type="text" class="input-sm" id="dial-cs-pkt"
            name="dial-cs-pkt" value="30">
          </div>
 
-         <div class="bwtest-dial">
+         <div class="bwtest-input">
           <div class="pretty p-svg p-curve p-pulse">
            <input type="radio" id="cs-radio-bw" name="cs-dial"
             value="bw">
@@ -131,7 +131,7 @@
              (mbps)</label>
            </div>
           </div>
-          <input type="text" class="dial" id="dial-cs-bw"
+          <input type="text" class="input-sm" id="dial-cs-bw"
            name="dial-cs-bw" value="0.08">
          </div>
 
@@ -142,7 +142,7 @@
 
 
        <div id="bwtest-sc" class="bwtest-control">
-
+<!--
         <div id="svg-sc" class="bwtest-svg">
          <svg class="svg-dials" viewBox="0 0 300 150">
         <line x1="290" y1="42" x2="21" y2="42" stroke-width="70"
@@ -150,7 +150,7 @@
         </svg>
         </div>
 
-        <div id="dials-sc" class="bwtest-dials">
+         <div id="dials-sc" class="bwtest-dials">
 
          <div class="bwtest-dial">
           <label for="dial-sc-sec" class="label-dial">seconds</label><input
@@ -196,7 +196,7 @@
            name="dial-sc-bw" value="0.08">
          </div>
 
-        </div>
+        </div> -->
 
        </div>
        <!-- SC END -->
@@ -305,12 +305,13 @@
        <div class="pretty p-switch p-fill">
         <input id="switch_cont" type="checkbox" />
         <div class="state p-success">
-         <label>Run Continuous Interval:</label>
+         <label>Run Continuous</label>
         </div>
        </div>
-       <input name="interval_sec" id="interval_sec" type="number"
-        style="width: 50px;" min="1" max="11" value="1"> sec.
 
+       Interval: <input name="interval_sec" id="interval_sec"
+        type="number" style="width: 50px;" min="1" max="11" value="1">
+       sec.
        <div class="pretty p-switch">
         <input id="switch_utc" type="checkbox" checked />
         <div class="state">
@@ -322,7 +323,6 @@
         tooltip="Use the equal sign, '=', between argument and parameter."><input
         type="text" id="addl_opt" name="addl_opt" style="width: 150px;">
        </span>
-
       </div>
 
       <div id="webapp-console-graph">
