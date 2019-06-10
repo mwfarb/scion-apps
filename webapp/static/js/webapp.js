@@ -597,6 +597,18 @@ function command(continuous) {
             });
         }
     }
+    if (activeApp == "bwtester") {
+        form_data.push({
+            name : "interval",
+            value : getIntervalMax()
+        });
+    }
+    if (activeApp == "echo") {
+        form_data.push({
+            name : "interval",
+            value : $('#echo_sec').val()
+        });
+    }
     if (activeApp == "camerapp") {
         // clear for new image request
         $('#images').empty();
@@ -906,10 +918,10 @@ function initDials(dir) {
             return Number(Math.round(v + 'e' + 2) + 'e-' + 2);
         },
     };
-    //$('#dial-' + dir + '-sec').knob(extend(prop_sec, dial_prop_arc));
-    //$('#dial-' + dir + '-size').knob(extend(prop_size, dial_prop_arc));
-    //$('#dial-' + dir + '-pkt').knob(extend(prop_pkt, dial_prop_text));
-    //$('#dial-' + dir + '-bw').knob(extend(prop_bw, dial_prop_arc));
+    // $('#dial-' + dir + '-sec').knob(extend(prop_sec, dial_prop_arc));
+    // $('#dial-' + dir + '-size').knob(extend(prop_size, dial_prop_arc));
+    // $('#dial-' + dir + '-pkt').knob(extend(prop_pkt, dial_prop_text));
+    // $('#dial-' + dir + '-bw').knob(extend(prop_bw, dial_prop_arc));
 }
 
 function onchange_radio(dir, value) {

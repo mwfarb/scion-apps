@@ -78,7 +78,15 @@
       <!-- BANDWIDTH TEST APP CONTENT -->
       <div id="bwtester" class="tab-pane fade in active">
 
-       <span id="bwtest_text"></span>
+       <span id="bwtest_text"></span><br> Interval: <input
+        name="bwtest_sec" id="bwtest_sec" type="number"
+        style="width: 45px;" min="3" max="11" value="4"> sec.
+
+       Additional Argument: <span
+        tooltip="Use the equal sign, '=', between argument and parameter."><input
+        type="text" id="addl_opt" name="addl_opt" style="width: 200px;">
+       </span>
+
 
        <div id="bwtest-cs" class="bwtest-control">
 
@@ -256,6 +264,26 @@
        </div>
 
        <span id="pingpong_text"></span>
+
+      </div>
+
+
+      <!-- SCMP ECHO APP CONTENT -->
+      <div id="echo" class="tab-pane fade">
+
+       <div id="svg-sc" class="bwtest-svg">
+        <svg class="svg-dials" viewBox="0 0 300 150">
+        <line x1="290" y1="42" x2="21" y2="42" stroke-width="70"
+          marker-end="url(#sc-arrowhead)" />
+        </svg>
+       </div>
+
+       <span id="echo_text"></span><br> Interval: <input
+        name="echo_sec" id="echo_sec" type="number" style="width: 45px;"
+        min="1" max="10" value="1"> sec. Additional Argument: <span
+        tooltip="Use the equal sign, '=', between argument and parameter."><input
+        type="text" id="addl_optse" name="addl_optse"
+        style="width: 200px;"> </span>
 
       </div>
 

@@ -13,7 +13,7 @@ type CmdItem interface {
 
 // EchoItem reflects one row in the echo table with all columns
 type EchoItem struct {
-	Inserted       int64 // ms Inserted/completed time
+	Inserted       int64 // ms Inserted time
 	ActualDuration int   // ms
 	CIa            string
 	CAddr          string
@@ -22,10 +22,23 @@ type EchoItem struct {
 	Count          int     // Default 1
 	Timeout        int     // s Default 2
 	Interval       int     // s Default 1
-	ResponseTime   float64 // ms
-	RunTime        float64 // ms
-	PktLoss        int     // percent Indicating pkt loss rate
-	CmdOutput      string  // command output
+	ResponseTime   float32 // ms
+	RunTime        float32
+	PktLoss        int    // percent Indicating pkt loss rate
+	CmdOutput      string // command output
+	Error          string
+	Path           string
+}
+
+// EchoGraph reflects one row in the echo table with only the
+// necessary items to display in a graph
+type EchoGraph struct {
+	Inserted       int64
+	ActualDuration int
+	ResponseTime   float32
+	RunTime        float32
+	PktLoss        int
+	CmdOutput      string
 	Error          string
 	Path           string
 }
@@ -180,14 +193,11 @@ func ReadEchoItemsAll() ([]EchoItem, error) {
 
 // ReadEchoItemsSince operates on the DB to return all echo rows
 // which are more recent than the 'since' epoch in ms.
-func ReadEchoItemsSince(since string) ([]EchoItem, error) {
+func ReadEchoItemsSince(since string) ([]EchoGraph, error) {
 	sqlReadSince := `
     SELECT
         Inserted,
         ActualDuration,
-        Count,
-        Timeout,
-        Interval,
         ResponseTime,
         RunTime,
         PktLoss,
@@ -204,15 +214,12 @@ func ReadEchoItemsSince(since string) ([]EchoItem, error) {
 	}
 	defer rows.Close()
 
-	var result []EchoItem
+	var result []EchoGraph
 	for rows.Next() {
-		echo := EchoItem{}
+		echo := EchoGraph{}
 		err = rows.Scan(
 			&echo.Inserted,
 			&echo.ActualDuration,
-			&echo.Count,
-			&echo.Timeout,
-			&echo.Interval,
 			&echo.ResponseTime,
 			&echo.RunTime,
 			&echo.PktLoss,

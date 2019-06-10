@@ -104,7 +104,7 @@ func createBwTestTable() error {
         SCArrAvg INT,
         SCArrMin INT,
         SCArrMax INT,
-        Error TEXT
+		Error TEXT
     );
     `
 	_, err := db.Exec(sqlCreateTable)
