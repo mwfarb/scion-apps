@@ -332,21 +332,6 @@ func parseCmdItem2Cmd(dOrinial model.CmdItem, appSel string, pathStr string) []s
 		// command = append(command, binname, optApp, optRemote, optLocal, optCount)
 		command = append(command, installpath, optApp, optRemote, optLocal, optCount, optTimeout, optInterval)
 		isdCli, _ = strconv.Atoi(strings.Split(d.CIa, "-")[0])
-
-	case "pingpong":
-		d, ok := dOrinial.(model.BwTestItem)
-		if !ok {
-			fmt.Println("Parsing error, CmdItem category doesn't match its name")
-			return nil
-		}
-		optClient := fmt.Sprintf("-local=%s,[%s]:%d", d.CIa, d.CAddr, d.CPort)
-		optServer := fmt.Sprintf("-remote=%s,[%s]:%d", d.SIa, d.SAddr, d.SPort)
-		command = append(command, installpath, optServer, optClient, "-count=1")
-		if len(pathStr) > 0 {
-			// if path choice provided, use interactive mode
-			command = append(command, "-i")
-		}
-		isdCli, _ = strconv.Atoi(strings.Split(d.CIa, "-")[0])
 	}
 
 	if isdCli < 16 {
@@ -492,8 +477,6 @@ func getClientCwd(app string) string {
 		cwd = path.Join(lib.GOPATH, lib.LABROOT, ".")
 	case "echo":
 		cwd = path.Join(lib.GOPATH, lib.SCIONROOT, "bin")
-	case "pingpong":
-		cwd = path.Join(lib.GOPATH, lib.SCIONROOT, "bin")
 	}
 	return cwd
 }
@@ -510,8 +493,6 @@ func getClientLocationBin(app string) string {
 		binname = path.Join(lib.GOPATH, lib.LABROOT, "bwtester/bwtestclient/bwtestclient")
 	case "echo":
 		binname = path.Join(lib.GOPATH, lib.SCIONROOT, "bin/scmp")
-	case "pingpong":
-		binname = path.Join(lib.GOPATH, lib.SCIONROOT, "bin/pingpong")
 	}
 	return binname
 }

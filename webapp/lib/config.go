@@ -101,10 +101,7 @@ func GenServerNodeDefaults(srcpath string) {
 		serIaDef + `", "addr":"` + serDefAddr + `","port":` + serPortDefSen + `}], `)
 	jsonBuf = append(jsonBuf, json...)
 	json = []byte(`"echo": [{"name":"localhost","isdas":"` +
-		serIaDef + `", "addr":"` + serDefAddr + `","port":` + serPortDefSen + `}], `)
-	jsonBuf = append(jsonBuf, json...)
-	json = []byte(`"pingpong": [{"name":"localhost","isdas":"` +
-		serIaDef + `", "addr":"` + serDefAddr + `","port":` + serPortDefSen + `}]`)
+		serIaDef + `", "addr":"` + serDefAddr + `","port":` + serPortDefSen + `}] `)
 	jsonBuf = append(jsonBuf, json...)
 
 	jsonBuf = append(jsonBuf, []byte(` }`)...)

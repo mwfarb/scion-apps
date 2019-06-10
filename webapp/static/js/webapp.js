@@ -31,7 +31,6 @@ var progIntervalMs = 500
 var chartCS;
 var chartSC;
 var chartSE;
-var chartPP;
 var lastTime;
 var lastTimeBwDb = new Date((new Date()).getTime() - (xAxisSec * 1000));
 
@@ -107,7 +106,6 @@ function initBwGraphs() {
     chartSC = drawBwtestSingleDir('sc', 'Download (mbps)', true, scColReq,
             scColAch);
     chartSE = drawPingGraph('echo-graph', 'Echo Response (ms)');
-    chartPP = drawPingGraph('pingpong-graph', 'Pingpong Response (ms)');
     // setup interval to manage smooth ticking
     lastTime = (new Date()).getTime() - (ticks * tickMs) + xLeftTrimMs;
     manageTickData();
@@ -120,10 +118,8 @@ function showOnlyConsoleGraphs(activeApp) {
     $('#images').css("display", (activeApp == "camerapp") ? "block" : "none");
     $('#echo-continuous').css("display",
             (activeApp == "echo") ? "block" : "none");
-    $('#pingpong-continuous').css("display",
-            (activeApp == "pingpong") ? "block" : "none");
     var isConsole = (activeApp == "bwtester" || activeApp == "camerapp"
-            || activeApp == "sensorapp" || activeApp == "echo" || activeApp == "pingpong");
+            || activeApp == "sensorapp" || activeApp == "echo");
     $('.stdout').css("display", isConsole ? "block" : "none");
 }
 
@@ -338,7 +334,6 @@ function manageTickData() {
         refreshTickData(chartCS, newTime);
         refreshTickData(chartSC, newTime);
         refreshTickData(chartSE, newTime);
-        refreshTickData(chartPP, newTime);
     }, tickMs);
 }
 
@@ -579,8 +574,7 @@ function command(continuous) {
         name : "apps",
         value : activeApp
     });
-    if (activeApp == "bwtester" || activeApp == "echo"
-            || activeApp == "pingpong") {
+    if (activeApp == "bwtester" || activeApp == "echo") {
         // add extra bwtester options required
         form_data.push({
             name : "continuous",
@@ -636,9 +630,6 @@ function command(continuous) {
         } else if (activeApp == "echo") {
             // check for usable data for graphing
             handleContResponse(resp, continuous, startTime);
-        } else if (activeApp == "pingpong") {
-            // check for usable data for graphing
-            handleContResponse(resp, continuous, startTime);
         } else {
             handleGeneralResponse();
         }
@@ -682,7 +673,6 @@ function lockTab(href) {
     enableTab("camerapp", "camerapp" == href);
     enableTab("sensorapp", "sensorapp" == href);
     enableTab("echo", "echo" == href);
-    enableTab("pingpong", "pingpong" == href);
 }
 
 function releaseTabs() {
@@ -690,7 +680,6 @@ function releaseTabs() {
     enableTab("camerapp", true);
     enableTab("sensorapp", true);
     enableTab("echo", true);
-    enableTab("pingpong", true);
 }
 
 function enableTab(href, enable) {
