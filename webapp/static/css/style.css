@@ -56,7 +56,11 @@ svg.svg-dials {
 .column-center {
  float: left;
  width: 500px;
+<<<<<<< HEAD
  height: 150px;
+=======
+ height: 300px;
+>>>>>>> master
  font-size: 12px;
 }
 
