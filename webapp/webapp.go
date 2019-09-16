@@ -185,6 +185,7 @@ func initServeHandlers() {
 	http.Handle("/data/", http.StripPrefix("/data/", fsData))
 	fsFileBrowser := http.FileServer(http.Dir(*browseRoot))
 	http.Handle("/files/", http.StripPrefix("/files/", fsFileBrowser))
+	http.HandleFunc("/video", videoHandler)
 
 	http.HandleFunc("/command", commandHandler)
 	http.HandleFunc("/imglast", findImageHandler)
@@ -228,6 +229,7 @@ func prepareTemplates(srcpath string) *template.Template {
 		path.Join(srcpath, "template/astopo.html"),
 		path.Join(srcpath, "template/crt.html"),
 		path.Join(srcpath, "template/trc.html"),
+		path.Join(srcpath, "template/video.html"),
 	))
 }
 
@@ -276,6 +278,10 @@ func crtHandler(w http.ResponseWriter, r *http.Request) {
 
 func trcHandler(w http.ResponseWriter, r *http.Request) {
 	display(w, "trc", &Page{Title: "SCIONLab TRC", MyIA: settings.MyIA})
+}
+
+func videoHandler(w http.ResponseWriter, r *http.Request) {
+	display(w, "video", &Page{Title: "SCIONLab Video", MyIA: settings.MyIA})
 }
 
 // There're three CmdItem, BwTestItem, EchoItem and TracerouteItem
