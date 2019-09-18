@@ -1,12 +1,5 @@
 {{define "video"}} {{template "header" .}}
 
-<div class="content">
-
- <h2>SCIONLab Video</h2>
- WIP testing for WebRTC -- DANGER! -- There be dragons here.
-</div>
-
-
 <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
 <!-- TODO: API update <script src="https://www.gstatic.com/firebasejs/6.6.1/firebase-app.js"></script> -->
 <link
@@ -14,37 +7,121 @@
  rel="stylesheet">
 
 
+<link href='https://fonts.googleapis.com/css?family=Nobile:700,400'
+ rel='stylesheet' type='text/css'>
+
+<link
+ href='https://fonts.googleapis.com/css?family=Gafata|Open+Sans:300'
+ rel='stylesheet' type='text/css'>
+
 <style>
 video {
+ width: 320px;
+ height: 240px;
  background-color: #ddd;
  border-radius: 7px;
  margin: 10px 0px 0px 10px;
- width: 320px;
- height: 240px;
 }
 
 button {
  margin: 5px 0px 0px 10px !important;
  width: 654px;
 }
+
+.video-container {
+ width: 320px;
+ height: 240px;
+  position: relative;
+  display: inline;
+ }
+
+.overlay-desc {
+ background: rgba(0, 0, 0, 0);
+ position: absolute;
+ top: 0;
+ left: 0;
+ width: 320px;
+ height: 240px;
+ margin: 10px 10px 10px 10px;
+}
+
+.overlay-text {
+ color: white;
+ font-family: 'Nobile', sans-serif;
+}
 </style>
 
 
-<div id="videoFrame">
- <video id="yourVideo" autoplay muted></video>
- <video id="friendsVideo" autoplay></video>
- <br />
- <button onclick="showFriendsFace()" type="button"
-  class="btn btn-primary btn-lg">
-  <span class="glyphicon glyphicon-facetime-video" aria-hidden="true"></span>
-  Call
- </button>
-</div>
+<div class="content">
 
-<script type="text/javascript">
-    document.getElementById("videoFrame").onload = function() {
-        ajaxConfig();
-    };
+ <div id='as-error'></div>
+
+
+
+ <h2>SCIONLab Video</h2>
+ WIP testing for WebRTC -- DANGER! -- There be dragons here.
+
+
+ <div id="videoFrame">
+
+
+<!--   <div class="video-container">
+   <video autoplay loop muted>
+        <source
+     src="http://www.icutpeople.com/wp-content/themes/icutpeople/assets/video/waynesworld.mp4"
+     type="video/mp4">
+    Your browser does not support the video tag.
+
+   </video>
+   <div class="overlay-desc">
+    <p class="overlay-text">Wayne's World</p>
+   </div>
+  </div>
+ -->
+
+  <div class="video-container">
+   <video id="yourVideo" autoplay muted>
+   </video>
+   <div class="overlay-desc">
+    <p class="overlay-text">yourVideo</p>
+   </div>
+  </div>
+
+  <div class="video-container">
+   <video id="friendsVideo" autoplay></video>
+   <div class="overlay-desc">
+    <p class="overlay-text">friendsVideo</p>
+   </div>
+  </div>
+
+
+  <br />
+  <button onclick="showFriendsFace()" type="button"
+   class="btn btn-primary btn-lg">
+   <span class="glyphicon glyphicon-facetime-video" aria-hidden="true"></span>
+   Call
+  </button>
+
+  <div class="stdout">
+   <div id="videoout"></div>
+  </div>
+
+
+
+ </div>
+
+ <script type="text/javascript">
+
+   window.onload = function(event) {
+       $("#videoout").empty();
+       debugLog("Loaded page");
+       ajaxConfig();
+   };
+
+   function debugLog(msg) {
+        console.log(msg);
+        $("#videoout").append("\n"+msg+".");
+    }
 
     function ajaxConfig() {
         return $.ajax({
@@ -55,7 +132,7 @@ button {
             timeout : 30000,
             success : isRTCConfigComplete,
             error : function(jqXHR, textStatus, errorThrown) {
-                console.log(this.url + ' ' + textStatus + ': ' + errorThrown);
+                debugLog(this.url + ' ' + textStatus + ': ' + errorThrown);
             },
         });
     }
@@ -87,6 +164,11 @@ button {
 
 
     function isRTCConfigComplete(data, textStatus, jqXHR) {
+        debugLog(this.url + ' ' + textStatus );
+        debugLog('firebaseConfig.apiKey = ' + data.webrtc_apiKey);
+        debugLog('firebaseConfig.messagingSenderId = ' + data.webrtc_messagingSenderId);
+        debugLog('firebaseConfig.appId = ' + data.webrtc_appId);
+
         firebaseConfig.apiKey = data.webrtc_apiKey;
         firebaseConfig.messagingSenderId = data.webrtc_messagingSenderId;
         firebaseConfig.appId = data.webrtc_appId;
@@ -105,6 +187,7 @@ button {
     }
 
     function sendMessage(senderId, data) {
+        debugLog("Called sendMessage()");
         var msg = database.push({
             sender : senderId,
             message : data
@@ -113,6 +196,7 @@ button {
     }
 
     function readMessage(data) {
+        debugLog("Called readMessage()");
         var msg = JSON.parse(data.val().message);
         var sender = data.val().sender;
         if (sender != yourId) {
@@ -130,12 +214,14 @@ button {
 
 
     function showMyFace() {
+        debugLog("Called showMyFace()");
         navigator.mediaDevices.getUserMedia({audio:true, video:true})
          .then(stream => yourVideo.srcObject = stream)
          .then(stream => pc.addStream(stream));
     }
 
     function showFriendsFace() {
+        debugLog("Called showFriendsFace()");
         pc.createOffer()
               .then(offer => pc.setLocalDescription(offer) )
               .then(() => sendMessage(yourId, JSON.stringify({'sdp': pc.localDescription})) );
@@ -143,4 +229,4 @@ button {
 
 </script>
 
-{{template "footer" .}} {{end}}
+ {{template "footer" .}} {{end}}
