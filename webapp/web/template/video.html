@@ -100,8 +100,8 @@ button {
    window.onload = function(event) {
        $("#videoout").empty();
        debugLog("Loaded page");
-       showMyIp("your addr");
-       showPeerIp("friends addr");
+       showMyIa(yourIa);
+       showPeerIa("");
        ajaxConfig();
    };
 
@@ -147,6 +147,7 @@ button {
     var yourVideo = document.getElementById("yourVideo");
     var friendsVideo = document.getElementById("friendsVideo");
     var yourId = Math.floor(Math.random() * 1000000000);
+    var yourIa = {{.MyIA}};
     var database;
 
 
@@ -177,6 +178,7 @@ button {
         debugLog("Called sendMessage()");
         var msg = database.push({
             sender : senderId,
+            ia : {{.MyIA}},
             message : data
         });
         msg.remove();
@@ -187,6 +189,8 @@ button {
         var msg = JSON.parse(data.val().message);
         var sender = data.val().sender;
         if (sender != yourId) {
+            var friendsIa = data.val().ia;
+            showPeerIa(friendsIa);
             if (msg.ice != undefined){
                 pc.addIceCandidate(new RTCIceCandidate(msg.ice));
             } else if (msg.sdp.type == "offer") {
@@ -217,11 +221,11 @@ button {
               .then(() => sendMessage(yourId, JSON.stringify({'sdp': pc.localDescription})) );
     }
 
-    function showMyIp(addr) {
+    function showMyIa(addr) {
         $("#yourVideoText").html(addr);
     }
 
-    function showPeerIp(addr) {
+    function showPeerIa(addr) {
         $("#friendsVideoText").html(addr);
     }
 
