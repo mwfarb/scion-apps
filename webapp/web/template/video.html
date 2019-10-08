@@ -1,11 +1,18 @@
 {{define "video"}} {{template "header" .}}
 
-<script src="https://www.gstatic.com/firebasejs/6.6.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
 <!-- TODO: API update <script src="https://www.gstatic.com/firebasejs/6.6.1/firebase-app.js"></script> -->
 <link
  href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"
  rel="stylesheet">
 
+
+<link href='https://fonts.googleapis.com/css?family=Nobile:700,400'
+ rel='stylesheet' type='text/css'>
+
+<link
+ href='https://fonts.googleapis.com/css?family=Gafata|Open+Sans:300'
+ rel='stylesheet' type='text/css'>
 
 <style>
 video {
@@ -51,14 +58,10 @@ button {
 
  <div id='as-error'></div>
 
-
-
  <h2>SCIONLab Video</h2>
  WIP testing for WebRTC -- DANGER! -- There be dragons here.
 
-
  <div id="videoFrame">
-
 
   <div class="video-line">
 
@@ -86,12 +89,9 @@ button {
    Call
   </button>
 
-
   <div class="stdout">
    <div id="videoout"></div>
   </div>
-
-
 
  </div>
 
@@ -189,14 +189,14 @@ button {
         if (sender != yourId) {
             if (msg.ice != undefined){
                 pc.addIceCandidate(new RTCIceCandidate(msg.ice));
-            } else if (msg.sdp.type == "offer"){
-                debugLog(getPeerIP(msg.sdp));
+            } else if (msg.sdp.type == "offer") {
+                // debugLog(getPeerIP(msg.sdp));
                 pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
                  .then(() => pc.createAnswer())
                  .then(answer => pc.setLocalDescription(answer))
                  .then(() => sendMessage(yourId, JSON.stringify({'sdp': pc.localDescription})));
             } else if (msg.sdp.type == "answer") {
-                debugLog(getPeerIP(msg.sdp));
+                // debugLog(getPeerIP(msg.sdp));
                 pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
             }
         }
@@ -217,7 +217,6 @@ button {
               .then(() => sendMessage(yourId, JSON.stringify({'sdp': pc.localDescription})) );
     }
 
-
     function showMyIp(addr) {
         $("#yourVideoText").html(addr);
     }
@@ -226,19 +225,20 @@ button {
         $("#friendsVideoText").html(addr);
     }
 
+/*
     function getPeerIP(sdp) {
-        var ips=[];
+       var ips=[];
         if (sdp){
         ips = sdp.split('\r\n').filter(function(line){
             return line.indexOf('c=') === 0;
         }).map(function(ipstr){
             return ipstr.match(/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/)[0];
-        });
-        }
+       });
+       }
         return ips[0];
     }
+ */
 
-
-</script>
+ </script>
 
  {{template "footer" .}} {{end}}
