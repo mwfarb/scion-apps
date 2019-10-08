@@ -4,6 +4,11 @@ Your milage may vary.
 
 # SCIONLab VM Test Development
 
+Add alternate test forwarding port line in `Vagrantfile`:
+```
+  config.vm.network "forwarded_port", guest: 8080, host: 8080, protocol: "tcp"
+```
+
 Install Go 1.11:
 ```shell
 cd ~
