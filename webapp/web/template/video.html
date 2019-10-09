@@ -69,14 +69,20 @@ button {
     <video id="yourVideo" autoplay muted>
     </video>
     <div class="overlay-desc">
-     <p id="yourVideoText" class="overlay-text">yourVideo</p>
+     <p id="yourIaText" class="overlay-text">yourIa</p>
+     <p id="yourVar1" class="overlay-text">yourVar1</p>
+     <p id="yourVar2" class="overlay-text">yourVar2</p>
+     <p id="yourVar3" class="overlay-text">yourVar3</p>
     </div>
    </div>
 
    <div class="video-container">
     <video id="friendsVideo" autoplay></video>
     <div class="overlay-desc">
-     <p id="friendsVideoText" class="overlay-text">friendsVideo</p>
+     <p id="friendsIaText" class="overlay-text">friendsIa</p>
+     <p id="friendsVar1" class="overlay-text">friendsVar1</p>
+     <p id="friendsVar2" class="overlay-text">friendsVar2</p>
+     <p id="friendsVar3" class="overlay-text">friendsVar3</p>
     </div>
    </div>
 
@@ -101,7 +107,6 @@ button {
        $("#videoout").empty();
        debugLog("Loaded page");
        showMyIa(yourIa);
-       showPeerIa("");
        ajaxConfig();
    };
 
@@ -115,7 +120,6 @@ button {
             url : 'config',
             type : 'get',
             dataType : "json",
-            //data : g,
             timeout : 30000,
             success : isRTCConfigComplete,
             error : function(jqXHR, textStatus, errorThrown) {
@@ -137,10 +141,6 @@ button {
                 'urls' : 'stun:stun.services.mozilla.com'
             }, {
                 'urls' : 'stun:stun.l.google.com:19302'
-            }, {
-                'urls': 'turn:numb.viagenie.ca',
-                'credential': '<your TURN password>',
-                'username': '<your TURN username>'
             } ]
         };
     var pc = new RTCPeerConnection(servers);
@@ -182,6 +182,7 @@ button {
             message : data
         });
         msg.remove();
+        updateAddrs();
     }
 
     function readMessage(data) {
@@ -194,18 +195,25 @@ button {
             if (msg.ice != undefined){
                 pc.addIceCandidate(new RTCIceCandidate(msg.ice));
             } else if (msg.sdp.type == "offer") {
-                // debugLog(getPeerIP(msg.sdp));
                 pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
                  .then(() => pc.createAnswer())
                  .then(answer => pc.setLocalDescription(answer))
                  .then(() => sendMessage(yourId, JSON.stringify({'sdp': pc.localDescription})));
             } else if (msg.sdp.type == "answer") {
-                // debugLog(getPeerIP(msg.sdp));
                 pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
             }
         }
+        updateAddrs();
     };
 
+    function updateAddrs() {
+        if (pc.currentLocalDescription){
+            showMyAddr(getSdpAddr(pc.currentLocalDescription.sdp));
+        }
+        if (pc.currentRemoteDescription){
+            showPeerAddr(getSdpAddr(pc.currentRemoteDescription.sdp));
+        }
+    }
 
     function showMyFace() {
         debugLog("Called showMyFace()");
@@ -221,16 +229,27 @@ button {
               .then(() => sendMessage(yourId, JSON.stringify({'sdp': pc.localDescription})) );
     }
 
-    function showMyIa(addr) {
-        $("#yourVideoText").html(addr);
+    function showMyIa(ia) {
+        debugLog("yourIaText: " + ia);
+        $("#yourIaText").html(ia);
     }
 
-    function showPeerIa(addr) {
-        $("#friendsVideoText").html(addr);
+    function showPeerIa(ia) {
+        debugLog("friendsIaText: " + ia);
+        $("#friendsIaText").html(ia);
     }
 
-/*
-    function getPeerIP(sdp) {
+    function showMyAddr(addr) {
+        debugLog("yourVar1: " + addr);
+        $("#yourVar1").html(addr);
+    }
+
+    function showPeerAddr(addr) {
+        debugLog("friendsVar1: " + addr);
+        $("#friendsVar1").html(addr);
+    }
+
+    function getSdpAddr(sdp) {
        var ips=[];
         if (sdp){
         ips = sdp.split('\r\n').filter(function(line){
@@ -241,7 +260,7 @@ button {
        }
         return ips[0];
     }
- */
+
 
  </script>
 
