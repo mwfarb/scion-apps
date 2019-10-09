@@ -1,6 +1,6 @@
 # Webapp Development Notes
 
-Your milage may vary.
+Your mileage may vary.
 
 # SCIONLab VM Test Development
 
@@ -53,3 +53,9 @@ watcher \
 -sgenc /var/lib/scion \
 -slogs /var/log/scion
 ```
+
+Useful URLs Firefox:
+- <about:webrtc>
+
+Useful URLs Chrome:
+- <chrome://webrtc-internals>
