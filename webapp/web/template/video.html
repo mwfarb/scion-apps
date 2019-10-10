@@ -20,12 +20,19 @@ video {
  height: 240px;
  background-color: #ddd;
  border-radius: 7px;
- margin: 10px 0px 0px 10px;
 }
 
 button {
  margin: 5px 0px 0px 10px !important;
  width: 654px;
+}
+
+#yourVBox {
+ float: left;
+}
+
+#friendsVBox {
+ overflow: hidden;
 }
 
 .video-container {
@@ -35,7 +42,7 @@ button {
 }
 
 .video-line {
- display: inline;
+ margin: 10px 0px 0px 10px;
 }
 
 .overlay-desc {
@@ -65,7 +72,7 @@ button {
 
   <div class="video-line">
 
-   <div class="video-container">
+   <div id="yourVBox" class="video-container">
     <video id="yourVideo" autoplay muted>
     </video>
     <div class="overlay-desc">
@@ -76,7 +83,7 @@ button {
     </div>
    </div>
 
-   <div class="video-container">
+   <div id="friendsVBox" class="video-container">
     <video id="friendsVideo" autoplay></video>
     <div class="overlay-desc">
      <p id="friendsIaText" class="overlay-text"></p>
@@ -101,7 +108,10 @@ button {
 
  </div>
 
- <script type="text/javascript">
+</div>
+
+
+<script type="text/javascript">
 
    window.onload = function(event) {
        $("#videoout").empty();
@@ -113,6 +123,7 @@ button {
    function debugLog(msg) {
         console.log(msg);
         $("#videoout").append("\n"+msg+".");
+        $(".stdout").scrollTop($(".stdout")[0].scrollHeight);
     }
 
     function ajaxConfig() {
@@ -208,11 +219,13 @@ button {
 
     function updateAddrs() {
         if (pc.currentLocalDescription){
+            debugLog("yourType: " + pc.currentLocalDescription.type);
             showMyAddr(getSdpAddr(pc.currentLocalDescription.sdp));
             showMyAudio(getSdpAudio(pc.currentLocalDescription.sdp));
             showMyVideo(getSdpVideo(pc.currentLocalDescription.sdp));
         }
         if (pc.currentRemoteDescription){
+            debugLog("friendsType: " + pc.currentRemoteDescription.type);
             showPeerAddr(getSdpAddr(pc.currentRemoteDescription.sdp));
             showPeerAudio(getSdpAudio(pc.currentRemoteDescription.sdp));
             showPeerVideo(getSdpVideo(pc.currentRemoteDescription.sdp));
@@ -311,4 +324,4 @@ button {
 
  </script>
 
- {{template "footer" .}} {{end}}
+{{template "footer" .}} {{end}}
