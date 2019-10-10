@@ -23,8 +23,8 @@ video {
 }
 
 button {
- margin: 5px 0px 0px 10px !important;
- width: 654px;
+ margin: 5px 0px 0px 0px !important;
+ width: 650px;
 }
 
 #yourVBox {
@@ -39,10 +39,24 @@ button {
  width: 320px;
  height: 240px;
  position: relative;
+ margin: 0px 10px 0px 0px;
 }
 
-.video-line {
+#videoFrame {
+ width: 1010px;
+ height: 300px;
+}
+
+.videos-line {
+ float: left;
  margin: 10px 0px 0px 10px;
+}
+
+.controls-line {
+ overflow: hidden;
+ width: 320px;
+ height: 240px;
+ padding: 10px;
 }
 
 .overlay-desc {
@@ -52,7 +66,7 @@ button {
  left: 0;
  width: 320px;
  height: 240px;
- margin: 10px 10px 10px 10px;
+ padding: 10px;
 }
 
 .overlay-text {
@@ -70,45 +84,58 @@ button {
 
  <div id="videoFrame">
 
-  <div class="video-line">
+  <div class="videos-line">
 
    <div id="yourVBox" class="video-container">
     <video id="yourVideo" autoplay muted>
     </video>
     <div class="overlay-desc">
-     <p id="yourIaText" class="overlay-text"></p>
+     <p id="yourIaText" class="overlay-text">yourIaText</p>
      <p id="yourVar1" class="overlay-text"></p>
      <p id="yourVar2" class="overlay-text"></p>
-     <p id="yourVar3" class="overlay-text"></p>
+     <p id="yourVar3" class="overlay-text">yourVar3</p>
     </div>
    </div>
 
    <div id="friendsVBox" class="video-container">
     <video id="friendsVideo" autoplay></video>
     <div class="overlay-desc">
-     <p id="friendsIaText" class="overlay-text"></p>
+     <p id="friendsIaText" class="overlay-text">friendsIaText</p>
      <p id="friendsVar1" class="overlay-text"></p>
      <p id="friendsVar2" class="overlay-text"></p>
-     <p id="friendsVar3" class="overlay-text"></p>
+     <p id="friendsVar3" class="overlay-text">friendsVar3</p>
     </div>
    </div>
 
+   <button onclick="showFriendsFace()" type="button"
+    class="btn btn-primary btn-lg">
+    <span class="glyphicon glyphicon-facetime-video" aria-hidden="true"></span>
+    Call
+   </button>
+
   </div>
 
-  <br />
-  <button onclick="showFriendsFace()" type="button"
-   class="btn btn-primary btn-lg">
-   <span class="glyphicon glyphicon-facetime-video" aria-hidden="true"></span>
-   Call
-  </button>
-
-  <div class="stdout">
-   <div id="videoout"></div>
+  <div class="controls-line">
+   <div id="connection-group">
+    <div>
+     <input type="radio" id="scion" name="connection" value="scion">
+     <label for="scion">SCION</label>
+    </div>
+    <div>
+     <input type="radio" id="internet" name="connection"
+      value="internet" checked> <label for="internet">Internet</label>
+    </div>
+   </div>
   </div>
 
  </div>
 
+ <div class="stdout">
+  <div id="videoout"></div>
+ </div>
+
 </div>
+
 
 
 <script type="text/javascript">
