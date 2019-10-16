@@ -183,6 +183,7 @@ func main() {
 	appsBuildCheck("sensorapp")
 	appsBuildCheck("echo")
 	appsBuildCheck("traceroute")
+	appsBuildCheck("sig")
 
 	initServeHandlers()
 	log.Info(fmt.Sprintf("Browser access: at http://%s:%d.", browserAddr, *port))
@@ -442,6 +443,9 @@ func parseCmdItem2Cmd(dOrinial model.CmdItem, appSel string, pathStr string) []s
 			command = append(command, "-i")
 		}
 		isdCli, _ = strconv.Atoi(strings.Split(d.CIa, "-")[0])
+
+	case "sig":
+		// TODO (mwfarb): update sig calling
 	}
 
 	if isdCli < 16 {
@@ -590,6 +594,8 @@ func getClientCwd(app string) string {
 		cwd = path.Join(options.StaticRoot, "data")
 	case "echo", "traceroute":
 		cwd = path.Join(options.ScionBin, ".")
+	case "sig":
+		cwd = path.Join(options.ScionBin, ".")
 	}
 	return cwd
 }
@@ -606,6 +612,8 @@ func getClientLocationBin(app string) string {
 		binname = path.Join(options.AppsRoot, "bwtestclient")
 	case "echo", "traceroute":
 		binname = path.Join(options.ScionBin, "scmp")
+	case "sig":
+		binname = path.Join(options.AppsRoot, "sig")
 	}
 	return binname
 }
