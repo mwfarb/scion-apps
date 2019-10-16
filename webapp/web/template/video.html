@@ -18,7 +18,7 @@
 video {
  width: 320px;
  height: 240px;
- background-color: #ddd;
+ background-color: #888;
  border-radius: 7px;
 }
 
@@ -90,20 +90,20 @@ button {
     <video id="yourVideo" autoplay muted>
     </video>
     <div class="overlay-desc">
-     <p id="yourIaText" class="overlay-text">yourIaText</p>
+     <p id="yourIaText" class="overlay-text">Your Video</p>
      <p id="yourVar1" class="overlay-text"></p>
      <p id="yourVar2" class="overlay-text"></p>
-     <p id="yourVar3" class="overlay-text">yourVar3</p>
+     <p id="yourVar3" class="overlay-text"></p>
     </div>
    </div>
 
    <div id="friendsVBox" class="video-container">
     <video id="friendsVideo" autoplay></video>
     <div class="overlay-desc">
-     <p id="friendsIaText" class="overlay-text">friendsIaText</p>
+     <p id="friendsIaText" class="overlay-text">Your Friend's Video</p>
      <p id="friendsVar1" class="overlay-text"></p>
      <p id="friendsVar2" class="overlay-text"></p>
-     <p id="friendsVar3" class="overlay-text">friendsVar3</p>
+     <p id="friendsVar3" class="overlay-text"></p>
     </div>
    </div>
 
@@ -118,12 +118,12 @@ button {
   <div class="controls-line">
    <div id="connection-group">
     <div>
-     <input type="radio" id="scion" name="connection" value="scion">
-     <label for="scion">SCION</label>
+     <input type="radio" id="scion" name="connection" value="scion"
+      disabled> <label for="scion">SCION</label>
     </div>
     <div>
      <input type="radio" id="internet" name="connection"
-      value="internet" checked> <label for="internet">Internet</label>
+      value="internet" checked disabled> <label for="internet">Internet</label>
     </div>
    </div>
   </div>
@@ -186,6 +186,7 @@ button {
     var friendsVideo = document.getElementById("friendsVideo");
     var yourId = Math.floor(Math.random() * 1000000000);
     var yourIa = {{.MyIA}};
+    var friendsIa;
     var database;
 
 
@@ -204,8 +205,11 @@ button {
         database = firebase.database().ref();
 
         pc.onicecandidate = (event => event.candidate?sendMessage(yourId, JSON.stringify({'ice': event.candidate})):console.log("Sent All Ice") );
-        pc.onaddstream = (event => friendsVideo.srcObject = event.stream);
-
+        pc.onaddstream = function(event) {
+            setupSigConnection();
+            friendsVideo.srcObject = event.stream;
+            // document.getElementById("hangup-button").disabled = false;
+        };
         database.on('child_added', readMessage);
 
         // when load finished...
@@ -228,7 +232,7 @@ button {
         var msg = JSON.parse(data.val().message);
         var sender = data.val().sender;
         if (sender != yourId) {
-            var friendsIa = data.val().ia;
+            friendsIa = data.val().ia;
             showPeerIa(friendsIa);
             if (msg.ice != undefined){
                 pc.addIceCandidate(new RTCIceCandidate(msg.ice));
@@ -243,6 +247,55 @@ button {
         }
         updateAddrs();
     };
+
+    function setupSigConnection() {
+        var form_data = [
+            {
+             "name": "ia_cli",
+             "value": yourIa
+            },
+            {
+             "name": "addr_cli",
+             "value": getSdpAddr(pc.currentLocalDescription.sdp)
+            },
+            {
+             "name": "port_cli",
+             "value": "30001"
+            },
+            {
+             "name": "ia_ser",
+             "value": friendsIa
+            },
+            {
+             "name": "addr_ser",
+             "value": getSdpAddr(pc.currentRemoteDescription.sdp)
+            },
+            {
+             "name": "port_ser",
+             "value": "30100"
+            },
+            {
+             "name": "apps",
+             "value": "sig"
+            },
+            {
+             "name": "continuous",
+             "value": false
+            },
+            {
+             "name": "interval",
+             "value": "1"
+            }
+            ];
+        debugLog('req: ' + JSON.stringify(form_data));
+        $.post('/command', form_data, function(resp, status, jqXHR) {
+            debugLog('resp: ' + resp);
+            //handleSigResponse(resp);
+        }).fail(function(error) {
+            debugLog('error: ' + error.responseJSON);
+            //handleGeneralResponse();
+        });
+    }
 
     function updateAddrs() {
         if (pc.currentLocalDescription){
@@ -315,7 +368,7 @@ button {
 
     function getSdpAddr(sdp) {
        var ips=[];
-       console.error(sdp)
+       //console.error(sdp)
        if (sdp){
           ips = sdp.split('\r\n').filter(function(line){
               return line.indexOf('c=') === 0;
@@ -328,7 +381,7 @@ button {
 
     function getSdpAudio(sdp) {
         var ips=[];
-        console.error(sdp)
+        //console.error(sdp)
         if (sdp){
            ips = sdp.split('\r\n').filter(function(line){
                return line.indexOf('m=audio') === 0;
@@ -339,7 +392,7 @@ button {
 
     function getSdpVideo(sdp) {
        var ips=[];
-       console.error(sdp)
+       //console.error(sdp)
        if (sdp){
           ips = sdp.split('\r\n').filter(function(line){
               return line.indexOf('m=video') === 0;

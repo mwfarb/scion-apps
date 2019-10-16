@@ -612,7 +612,7 @@ func getClientLocationBin(app string) string {
 		binname = path.Join(options.AppsRoot, "bwtestclient")
 	case "echo", "traceroute":
 		binname = path.Join(options.ScionBin, "scmp")
-	case "sig":
+	case "sig": // TODO: use options.ScionBin when sig is packaged
 		binname = path.Join(options.AppsRoot, "sig")
 	}
 	return binname

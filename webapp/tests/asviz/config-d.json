@@ -1,6 +1,134 @@
-{
- "google_geolocation_apikey": null,
- "google_mapsjs_apikey": null,
- "nodes_xml_url": null,
- "labels_json_url": null
-}
+var form_data = [
+ {
+  "name": "sel_cli",
+  "value": "0"
+ },
+ {
+  "name": "ia_cli",
+  "value": "1-ff00:0:111"
+ },
+ {
+  "name": "addr_cli",
+  "value": "127.0.0.1"
+ },
+ {
+  "name": "port_cli",
+  "value": "30001"
+ },
+ {
+  "name": "bwtest_sec",
+  "value": "4"
+ },
+ {
+  "name": "addl_opt",
+  "value": ""
+ },
+ {
+  "name": "dial-cs-sec",
+  "value": "3"
+ },
+ {
+  "name": "cs-dial",
+  "value": "size"
+ },
+ {
+  "name": "dial-cs-size",
+  "value": "1000"
+ },
+ {
+  "name": "dial-cs-pkt",
+  "value": "30"
+ },
+ {
+  "name": "dial-cs-bw",
+  "value": "0.08"
+ },
+ {
+  "name": "dial-sc-sec",
+  "value": "3"
+ },
+ {
+  "name": "sc-dial",
+  "value": "size"
+ },
+ {
+  "name": "dial-sc-size",
+  "value": "1000"
+ },
+ {
+  "name": "dial-sc-pkt",
+  "value": "30"
+ },
+ {
+  "name": "dial-sc-bw",
+  "value": "0.08"
+ },
+ {
+  "name": "addl_optca",
+  "value": ""
+ },
+ {
+  "name": "addl_optsa",
+  "value": ""
+ },
+ {
+  "name": "echo_sec",
+  "value": "1"
+ },
+ {
+  "name": "addl_optse",
+  "value": ""
+ },
+ {
+  "name": "traceroute_sec",
+  "value": "1"
+ },
+ {
+  "name": "addl_opttr",
+  "value": ""
+ },
+ {
+  "name": "sel_ser",
+  "value": "0"
+ },
+ {
+  "name": "ia_ser",
+  "value": "1-ff00:0:112"
+ },
+ {
+  "name": "addr_ser",
+  "value": "127.0.0.2"
+ },
+ {
+  "name": "port_ser",
+  "value": "30100"
+ },
+ {
+  "name": "radioPaths",
+  "value": "on"
+ },
+ {
+  "name": "apps",
+  "value": "echo"
+ },
+ {
+  "name": "continuous",
+  "value": false
+ },
+ {
+  "name": "interval",
+  "value": "1"
+ },
+ {
+  "apps",value:"sig"
+ },
+ {
+  "continuous",value:false
+ },
+ {
+  "pathStr",value:formatPathString(resPath
+ },
+ {
+  "interval",value:getIntervalMax()
+ }
+];
