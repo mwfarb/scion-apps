@@ -1,6 +1,6 @@
 # Webapp Development Notes
 
-Your milage may vary.
+Your mileage may vary.
 
 # SCIONLab VM Test Development
 
@@ -19,8 +19,7 @@ sudo tar -C /usr/local -xzf go1.11.13.linux-amd64.tar.gz
 Update Go Paths:
 ```shell
 echo 'export GOPATH="$HOME/go"' >> ~/.profile
-echo 'export PATH="$HOME/.local/bin:$GOPATH/bin:$PATH"' >> ~/.profile
-export PATH=$PATH:/usr/local/go/bin  >> ~/.profile
+echo 'export PATH="$HOME/.local/bin:$GOPATH/bin:/usr/local/go/bin:$PATH"' >> ~/.profile
 source ~/.profile
 mkdir -p "$GOPATH"
 ```
@@ -54,3 +53,9 @@ watcher \
 -sgenc /var/lib/scion \
 -slogs /var/log/scion
 ```
+
+Useful URLs Firefox:
+- <about:webrtc>
+
+Useful URLs Chrome:
+- <chrome://webrtc-internals>
