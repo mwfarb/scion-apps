@@ -205,11 +205,12 @@ button {
         database = firebase.database().ref();
 
         pc.onicecandidate = (event => event.candidate?sendMessage(yourId, JSON.stringify({'ice': event.candidate})):console.log("Sent All Ice") );
-        pc.onaddstream = function(event) {
-            setupSigConnection();
-            friendsVideo.srcObject = event.stream;
-            // document.getElementById("hangup-button").disabled = false;
-        };
+        pc.onaddstream = (event => friendsVideo.srcObject = event.stream);
+        //pc.onaddstream = function(event) {
+        //    setupSigConnection();
+        //    friendsVideo.srcObject = event.stream;
+        //    // document.getElementById("hangup-button").disabled = false;
+        //};
         database.on('child_added', readMessage);
 
         // when load finished...
