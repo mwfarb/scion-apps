@@ -41,8 +41,8 @@ var friendsVideo;
 window.onload = function(event) {
     $("#videoout").empty();
     debugLog("Loaded page");
-    yourVideo = $("#yourVideo");
-    friendsVideo = $("#friendsVideo");
+    yourVideo = document.getElementById("yourVideo");
+    friendsVideo = document.getElementById("friendsVideo");
     showMyIa(yourIa);
     ajaxConfig();
 };
