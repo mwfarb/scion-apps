@@ -74,6 +74,7 @@ var sensorText = 'Execute sensorapp to retrieve sensor data.';
 var bwgraphsText = 'Click legend to hide/show data when continuous test is on.';
 var cont_disable_msg = 'Continuous testing disabled.'
 var echoText = 'Execute echo to measure response time.';
+var sigText = 'Execute sig to start client/server, then send a message.';
 
 window.onbeforeunload = function(event) {
     // detect window close to end continuous test if any
@@ -108,6 +109,7 @@ function initBwGraphs() {
     updateBwInterval();
 
     // charts update on tab switch
+    handleSwitchTabs(); // init
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
         var name = $(e.target).attr("name");
         if (name != "as-graphs" && name != "as-tab-pathtopo") {
@@ -137,7 +139,8 @@ function showOnlyConsoleGraphs(activeApp) {
     $('#echo-continuous').css("display",
             (activeApp == "echo") ? "block" : "none");
     var isConsole = (activeApp == "bwtester" || activeApp == "camerapp"
-            || activeApp == "sensorapp" || activeApp == "echo" || activeApp == "traceroute");
+            || activeApp == "sensorapp" || activeApp == "echo"
+            || activeApp == "traceroute" || activeApp == "sig");
     $('.stdout').css("display", isConsole ? "block" : "none");
 }
 
@@ -750,6 +753,7 @@ function lockTab(href) {
     enableTab("sensorapp", "sensorapp" == href);
     enableTab("echo", "echo" == href);
     enableTab("traceroute", "traceroute" == href);
+    enableTab("sig", "sig" == href);
 }
 
 function releaseTabs() {
@@ -758,6 +762,7 @@ function releaseTabs() {
     enableTab("sensorapp", true);
     enableTab("echo", true);
     enableTab("traceroute", true);
+    enableTab("sig", true);
 }
 
 function enableTab(href, enable) {
@@ -922,6 +927,7 @@ function setDefaults() {
     $('#bwtest_text').text(bwText);
     $('#bwgraphs_text').text(bwgraphsText);
     $('#echo_text').text(echoText);
+    $('#sig_text').text(sigText);
 
     onchange_radio('cs', 'size');
     onchange_radio('sc', 'size');

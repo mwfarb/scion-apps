@@ -64,8 +64,9 @@
 
      <!-- APPS TABS DEFINITIONS -->
      <ul class="nav nav-tabs">
-      <li class="active"><a data-toggle="tab" name="bwtester"
-       href="#bwtester">bwtester</a></li>
+      <li class="active"><a data-toggle="tab" name="sig"
+       href="#sig">sig</a></li>
+      <li><a data-toggle="tab" name="bwtester" href="#bwtester">bwtester</a></li>
       <li><a data-toggle="tab" name="camerapp" href="#camerapp">camerapp</a></li>
       <li><a data-toggle="tab" name="sensorapp" href="#sensorapp">sensorapp</a></li>
       <li><a data-toggle="tab" name="echo" href="#echo">echo</a></li>
@@ -73,13 +74,37 @@
      </ul>
      <div id="tab-content-apps" class="tab-content">
 
-      <!-- BANDWIDTH TEST APP CONTENT -->
-      <div id="bwtester" class="tab-pane fade in active">
 
+      <!-- IP GATEWAY TEST APP CONTENT -->
+      <div id="sig" class="tab-pane fade in active">
+
+       <span id="sig_text"></span><br>
+       <div id="sig-cs-group">
+        <div>
+         <input type="radio" id="radio-client-sig" name="sig-cs"
+          value="client"> <label for="client">client</label> <input
+          type="text" id="text-client-sig" name="sig-cs" required
+          pattern="^[0-9a-fA-F]+$" placeholder="message"
+          style="background-color: powderblue; width: 150px;"><input
+          type="button" id="button-client-sig" name="sig-cs"
+          value="Send">
+        </div>
+        <div>
+         <input type="radio" id="radio-server" name="sig-cs"
+          value="server"> <label for="server">server</label> <span
+          id="text-server-sig" name="sig-cs"
+          style="background-color: powderblue; width: 150px;"></span>
+        </div>
+       </div>
+
+      </div>
+
+      <!-- BANDWIDTH TEST APP CONTENT -->
+      <div id="
+          bwtester" class="tab-pane fade">
        <span id="bwtest_text"></span><br> Interval: <input
         name="bwtest_sec" id="bwtest_sec" type="number"
         style="width: 45px;" min="3" max="11" value="4"> sec.
-
        Additional Argument: <span
         tooltip="Use the equal sign, '=', between argument and parameter."><input
         type="text" id="addl_opt" name="addl_opt" style="width: 200px;">
@@ -206,7 +231,6 @@
 
        </div>
        <!-- SC END -->
-
       </div>
 
       <!-- CAMERA FETCHER APP CONTENT -->
@@ -419,7 +443,6 @@
      <p id="path-info"></p>
     </div>
    </div>
-
   </form>
 
  </div>
