@@ -130,7 +130,20 @@ function initBwGraphs() {
     lastTime = (new Date()).getTime() - (ticks * tickMs) + xLeftTrimMs;
     manageTickData();
     manageTestData();
+
+    sigClockTimer = setInterval(function() {
+        // switch based on client/server
+
+        // TODO: client get data from server
+
+        // TODO: update client data from server
+
+        // update server data at the server
+
+        // TODO: send server data to the client
+    }, 1000);
 }
+var sigClockTimer;
 
 function showOnlyConsoleGraphs(activeApp) {
     $('#bwtest-continuous').css("display",
