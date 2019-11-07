@@ -123,7 +123,7 @@
    "port": 40002
   }
  ],
- "sig": [
+ "netcat": [
   {
    "name": "18-ffaa:1:3b server",
    "isdas": "18-ffaa:1:3b",

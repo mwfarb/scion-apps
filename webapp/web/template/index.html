@@ -11,7 +11,43 @@
 <script type="text/javascript" src="static/js/tab-g-maps.js"></script>
 <script type="text/javascript" src="static/js/asviz.js"></script>
 <script type="text/javascript" src="static/js/tab-paths.js"></script>
+<script type="text/javascript" src="static/js/netcat.js"></script>
 <script type="text/javascript" src="static/js/webapp.js"></script>
+
+<style type="text/css">
+#nc-body {
+ overflow: hidden;
+ padding: 0;
+ margin: 0;
+ width: 100%;
+ height: 100%;
+ background: gray;
+}
+
+#nc-log {
+ background: white;
+ margin: 0;
+ padding: 0.5em 0.5em 0.5em 0.5em;
+ /*  position: absolute; */
+ top: 0.5em;
+ left: 0.5em;
+ right: 0.5em;
+ bottom: 3em;
+ overflow: auto;
+ height: 100%;
+}
+
+#nc-form {
+ padding: 0 0.5em 0 0.5em;
+ margin: 0;
+ /*  position: absolute; */
+ bottom: 1em;
+ left: 0px;
+ width: 100%;
+ overflow: hidden;
+}
+</style>
+
 
 <div class="content">
 
@@ -64,8 +100,8 @@
 
      <!-- APPS TABS DEFINITIONS -->
      <ul class="nav nav-tabs">
-      <li class="active"><a data-toggle="tab" name="sig"
-       href="#sig">sig</a></li>
+      <li class="active"><a data-toggle="tab" name="netcat"
+       href="#netcat">netcat</a></li>
       <li><a data-toggle="tab" name="bwtester" href="#bwtester">bwtester</a></li>
       <li><a data-toggle="tab" name="camerapp" href="#camerapp">camerapp</a></li>
       <li><a data-toggle="tab" name="sensorapp" href="#sensorapp">sensorapp</a></li>
@@ -75,21 +111,16 @@
      <div id="tab-content-apps" class="tab-content">
 
 
-      <!-- IP GATEWAY TEST APP CONTENT -->
-      <div id="sig" class="tab-pane fade in active">
+      <!-- NETCAT TEST APP CONTENT -->
+      <div id="netcat" class="tab-pane fade in active">
 
-       <span id="sig_text"></span><br>
-       <div id="sig-cs-group">
-        <div>
-         <input type="radio" id="radio-server" name="sig-cs"
-          value="server"> <label for="server">server</label> <span
-          id="text-server-sig" name="sig-cs"></span>
-        </div>
-        <div>
-         <input type="radio" id="radio-client-sig" name="sig-cs"
-          value="client"> <label for="client">client</label> <span
-          id="text-client-sig" name="sig-cs"></span>
-        </div>
+       <span id="netcat_text"></span><br>
+       <div id="nc-body">
+        <div id="nc-log"></div>
+        <form id="nc-form">
+         <input type="submit" value="Send" /> <input type="text"
+          id="nc-msg" size="64" />
+        </form>
        </div>
 
       </div>
