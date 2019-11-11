@@ -110,7 +110,7 @@ button {
   </div>
 
   <div class="controls-line">
-   <div id="connection-group">
+   <!--    <div id="connection-group">
     <div>
      <input type="radio" id="scion" name="connection" value="scion"
       disabled> <label for="scion">SCION</label>
@@ -120,6 +120,12 @@ button {
       value="internet" checked disabled> <label for="internet">Internet</label>
     </div>
    </div>
+ -->
+
+   <input id="yourMsg" type="text" /> <input type="button" value="Send"
+    onclick="sendMsg();">
+   <pre id="logMsgs" class="stdout"></pre>
+
   </div>
 
  </div>
@@ -129,6 +135,9 @@ button {
  </div>
 
 </div>
+
+<script type="text/javascript" src="static/js/netcat.js"></script>
+
 
 <script type="text/javascript">
     yourIa = {{.MyIA}};

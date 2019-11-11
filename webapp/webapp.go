@@ -33,6 +33,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	log "github.com/inconshreveable/log15"
 	"github.com/kormat/fmt15"
 	_ "github.com/mattn/go-sqlite3"
@@ -228,6 +229,7 @@ func initServeHandlers() {
 	fsFileBrowser := http.FileServer(http.Dir(options.BrowseRoot))
 	http.Handle("/files/", http.StripPrefix("/files/", fsFileBrowser))
 	http.HandleFunc("/video", videoHandler)
+	http.HandleFunc("/echo", echoHandler)
 
 	http.HandleFunc("/command", commandHandler)
 	http.HandleFunc("/imglast", findImageHandler)
@@ -797,4 +799,39 @@ func setUserOptionsHandler(w http.ResponseWriter, r *http.Request) {
 	lib.WriteUserSetting(&options, settings)
 	lib.GenClientNodeDefaults(&options, settings.MyIA)
 	log.Info("IA set:", "myIa", settings.MyIA)
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // TODO fix
+	},
+}
+
+func echoHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	defer conn.Close()
+	if CheckError(err) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for {
+		// message from browser
+		msgType, msg, err := conn.ReadMessage()
+		if CheckError(err) {
+			return
+		}
+
+		// Print the message to the console
+		fmt.Printf("%s sent: %s\n", conn.RemoteAddr(), string(msg))
+
+		// message to browser
+		err = conn.WriteMessage(msgType, msg)
+		if CheckError(err) {
+			return
+		}
+	}
+
 }

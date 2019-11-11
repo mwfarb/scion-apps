@@ -82,6 +82,15 @@ function isRTCConfigComplete(data, textStatus, jqXHR) {
         event.candidate ? sendMessage(yourId, JSON.stringify({
             'ice' : event.candidate
         })) : console.log("Sent All Ice");
+
+        // addresses now complete?, so open netcat chat
+
+        // netcat listen to stdout on local IA yourChatPort
+        // - on stdout.read(msg), append.txt("friend:"+msg)
+
+        // netcat serve to stdin on remote IA friendChatPort
+        // - on btn-send(msg), stdin.write(), append.txt("self:"+msg)
+
     };
     pc.onaddstream = function(event) {
         friendsVideo.srcObject = event.stream;
@@ -216,8 +225,19 @@ function showMyFace() {
     });
 }
 
+var callerChatPort = 8881;
+var answererChatPort = 8882;
+// defaults
+var yourChatPort = callerChatPort;
+var friendChatPort = answererChatPort;
+
 function showFriendsFace() {
     debugLog("Called showFriendsFace()");
+
+    // use call button to establish deterministic port
+    var yourChatPort = answererChatPort;
+    var friendChatPort = callerChatPort;
+
     pc.createOffer()
     // place offer in local conn
     .then(function(offer) {

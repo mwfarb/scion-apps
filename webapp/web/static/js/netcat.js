@@ -3,56 +3,49 @@
 // https://coderwall.com/p/wohavg/creating-a-simple-tcp-server-in-go
 // https://stackoverflow.com/questions/8309648/netcat-streaming-using-udp
 // https://stackoverflow.com/questions/47231085/go-stdout-stream-from-async-command
+// https://gowebexamples.com/websockets/
 
-// netcat -l -local 1-ff00:0:112,[127.0.0.2] 4141
+// scionlab chat
+// netcat -local 1-ffaa:1:3b,[127.0.0.1] 1-ffaa:1:120,[127.0.0.1] 4141
+// netcat -l -local 1-ffaa:1:120,[127.0.0.1] 4141
+
+// test chat
 // netcat -local 1-ff00:0:111,[127.0.0.1] 1-ff00:0:112,[127.0.0.2] 4141
+// netcat -l -local 1-ff00:0:112,[127.0.0.2] 4141
+
+// test movie
+// cat ~/Desktop/out-2019-08-06.ogv | netcat -b -local 1-ff00:0:112,[127.0.0.2] 1-ff00:0:111,[127.0.0.1] 4142
+// netcat -l -b -local 1-ff00:0:111,[127.0.0.1] 4142 | mplayer -
+
+var yourMsg, logMsgs, socket;
 
 $(document).ready(function() {
+    yourMsg = document.getElementById("yourMsg");
+    logMsgs = document.getElementById("logMsgs");
+    socket = new WebSocket("ws://" + document.location.host + "/echo");
 
-    var conn;
-    var msg = document.getElementById("nc-msg");
-    var log = document.getElementById("nc-log");
+    socket.onopen = function() {
+        appendLog("Status: Connected\n");
+    };
 
-    function appendLog(item) {
-        var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-        log.appendChild(item);
-        if (doScroll) {
-            log.scrollTop = log.scrollHeight - log.clientHeight;
-        }
-    }
-
-    var formCheck = document.getElementById("nc-form");
-    // formCheck.onSubmit = function() {
-    // if (!conn) {
-    // return false;
-    // }
-    // if (!msg.value) {
-    // return false;
-    // }
-    // conn.send(msg.value);
-    // msg.value = "";
-    // return false;
-    // };
-
-    if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
-        conn.onclose = function(evt) {
-            var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(item);
-        };
-        conn.onmessage = function(evt) {
-            var messages = evt.data.split('\n');
-            for (var i = 0; i < messages.length; i++) {
-                var item = document.createElement("div");
-                item.innerText = messages[i];
-                appendLog(item);
-            }
-        };
-    } else {
-        var item = document.createElement("div");
-        item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(item);
-    }
+    socket.onmessage = function(e) {
+        appendLog("Server: " + e.data + "\n");
+    };
 
 });
+
+function appendLog(msg) {
+    var doScroll = logMsgs.scrollTop > logMsgs.scrollHeight
+            - logMsgs.clientHeight - 1;
+    var item = document.createElement("div");
+    item.innerHTML = msg;
+    logMsgs.appendChild(item);
+    if (doScroll) {
+        logMsgs.scrollTop = logMsgs.scrollHeight - logMsgs.clientHeight;
+    }
+}
+
+function sendMsg() {
+    socket.send(yourMsg.value);
+    yourMsg.value = "";
+}
