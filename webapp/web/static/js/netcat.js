@@ -34,6 +34,12 @@ $(document).ready(function() {
 
 });
 
+
+function sendMsg() {
+    socket.send(yourMsg.value);
+    yourMsg.value = "";
+}
+
 function appendLog(msg) {
     var doScroll = logMsgs.scrollTop > logMsgs.scrollHeight
             - logMsgs.clientHeight - 1;
@@ -43,9 +49,4 @@ function appendLog(msg) {
     if (doScroll) {
         logMsgs.scrollTop = logMsgs.scrollHeight - logMsgs.clientHeight;
     }
-}
-
-function sendMsg() {
-    socket.send(yourMsg.value);
-    yourMsg.value = "";
 }

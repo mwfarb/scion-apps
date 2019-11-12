@@ -74,7 +74,6 @@ var sensorText = 'Execute sensorapp to retrieve sensor data.';
 var bwgraphsText = 'Click legend to hide/show data when continuous test is on.';
 var cont_disable_msg = 'Continuous testing disabled.'
 var echoText = 'Execute echo to measure response time.';
-var netcatText = 'Execute netcat to start client/server, then send a message.';
 
 window.onbeforeunload = function(event) {
     // detect window close to end continuous test if any
@@ -130,20 +129,7 @@ function initBwGraphs() {
     lastTime = (new Date()).getTime() - (ticks * tickMs) + xLeftTrimMs;
     manageTickData();
     manageTestData();
-
-    netcatClockTimer = setInterval(function() {
-        // switch based on client/server
-
-        // TODO: client get data from server
-
-        // TODO: update client data from server
-
-        // update server data at the server
-
-        // TODO: send server data to the client
-    }, 1000);
 }
-var netcatClockTimer;
 
 function showOnlyConsoleGraphs(activeApp) {
     $('#bwtest-continuous').css("display",
@@ -152,8 +138,7 @@ function showOnlyConsoleGraphs(activeApp) {
     $('#echo-continuous').css("display",
             (activeApp == "echo") ? "block" : "none");
     var isConsole = (activeApp == "bwtester" || activeApp == "camerapp"
-            || activeApp == "sensorapp" || activeApp == "echo"
-            || activeApp == "traceroute" || activeApp == "netcat");
+            || activeApp == "sensorapp" || activeApp == "echo" || activeApp == "traceroute");
     $('.stdout').css("display", isConsole ? "block" : "none");
 }
 
@@ -766,7 +751,6 @@ function lockTab(href) {
     enableTab("sensorapp", "sensorapp" == href);
     enableTab("echo", "echo" == href);
     enableTab("traceroute", "traceroute" == href);
-    enableTab("netcat", "netcat" == href);
 }
 
 function releaseTabs() {
@@ -775,7 +759,6 @@ function releaseTabs() {
     enableTab("sensorapp", true);
     enableTab("echo", true);
     enableTab("traceroute", true);
-    enableTab("netcat", true);
 }
 
 function enableTab(href, enable) {
@@ -940,7 +923,6 @@ function setDefaults() {
     $('#bwtest_text').text(bwText);
     $('#bwgraphs_text').text(bwgraphsText);
     $('#echo_text').text(echoText);
-    $('#netcat_text').text(netcatText);
 
     onchange_radio('cs', 'size');
     onchange_radio('sc', 'size');

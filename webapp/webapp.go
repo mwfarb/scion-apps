@@ -184,6 +184,7 @@ func main() {
 	appsBuildCheck("sensorapp")
 	appsBuildCheck("echo")
 	appsBuildCheck("traceroute")
+	appsBuildCheck("sig")
 	appsBuildCheck("netcat")
 
 	initServeHandlers()
@@ -445,9 +446,6 @@ func parseCmdItem2Cmd(dOrinial model.CmdItem, appSel string, pathStr string) []s
 			command = append(command, "-i")
 		}
 		isdCli, _ = strconv.Atoi(strings.Split(d.CIa, "-")[0])
-
-	case "netcat":
-		// TODO (mwfarb): update netcat calling
 	}
 
 	if isdCli < 16 {
@@ -596,8 +594,6 @@ func getClientCwd(app string) string {
 		cwd = path.Join(options.StaticRoot, "data")
 	case "echo", "traceroute":
 		cwd = path.Join(options.ScionBin, ".")
-	case "netcat":
-		cwd = path.Join(options.ScionBin, ".")
 	}
 	return cwd
 }
@@ -614,7 +610,9 @@ func getClientLocationBin(app string) string {
 		binname = path.Join(options.AppsRoot, "bwtestclient")
 	case "echo", "traceroute":
 		binname = path.Join(options.ScionBin, "scmp")
-	case "netcat": // TODO: use options.ScionBin when netcat is packaged
+	case "sig": // TODO: use options.ScionBin when sig is packaged
+		binname = path.Join(options.AppsRoot, "sig")
+	case "netcat":
 		binname = path.Join(options.AppsRoot, "netcat")
 	}
 	return binname
@@ -810,6 +808,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
+	// open websocket server connection
 	conn, err := upgrader.Upgrade(w, r, nil)
 	defer conn.Close()
 	if CheckError(err) {
@@ -817,6 +816,33 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO use passed in ports for servers/clients here
+
+	//	// TODO open scion netcat server to friend and ready stdin...
+	//	cmdCli := exec.Command(cmdName, cmdArgs...)
+	//	cmdReader, _ := cmdCli.StdinPipe()
+	//	scanner := bufio.NewScanner(cmdReader)
+	//	go func() {
+	//		for scanner.Scan() {
+	//			fmt.Printf(scanner.Text())
+	//		}
+	//	}()
+	//	cmd.Start()
+	//	err = cmd.Wait()
+	//
+	//	// TODO open scion netcat client listen from friend and ready stdout...
+	//	cmd := exec.Command(cmdName, cmdArgs...)
+	//	cmdReader, _ := cmd.StdoutPipe()
+	//	scanner := bufio.NewScanner(cmdReader)
+	//	go func() {
+	//		for scanner.Scan() {
+	//			fmt.Printf(scanner.Text())
+	//		}
+	//	}()
+	//	cmd.Start()
+	//	err = cmd.Wait()
+
+	// monitor websocket for input
 	for {
 		// message from browser
 		msgType, msg, err := conn.ReadMessage()
@@ -825,13 +851,17 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Print the message to the console
-		fmt.Printf("%s sent: %s\n", conn.RemoteAddr(), string(msg))
+		fmt.Printf("sent: %s\n", string(msg))
 
-		// message to browser
+		// TODO pipe message to netcat stdin...
+
+		// when netcat scanner from stdout reads, send message to browser
 		err = conn.WriteMessage(msgType, msg)
 		if CheckError(err) {
 			return
 		}
+
 	}
 
+	// TODO close all open netcat commands
 }
