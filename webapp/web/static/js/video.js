@@ -31,12 +31,23 @@ var iceServers = {
 const regexIpAddr = /[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/;
 
 var pc = new RTCPeerConnection(iceServers);
-var yourId = Math.floor(Math.random() * 1000000000);
-var yourIa;
-var friendsIa;
 var database;
+
 var yourVideo;
 var friendsVideo;
+
+var yourId = Math.floor(Math.random() * 1000000000);
+var yourIa;
+var yourAddr;
+var yourChatPort = randomPort();
+var yourAudioPort = randomPort();
+var yourVideoPort = randomPort();
+
+var friendsIa;
+var friendsAddr;
+var friendsChatPort;
+var friendsAudioPort;
+var friendsVideoPort;
 
 window.onload = function(event) {
     $("#videoout").empty();
@@ -44,13 +55,41 @@ window.onload = function(event) {
     yourVideo = document.getElementById("yourVideo");
     friendsVideo = document.getElementById("friendsVideo");
     showMyIa(yourIa);
+    debugLog("yourId: " + yourId);
+    debugLog("yourChatPort: " + yourChatPort);
+    debugLog("yourAudioPort: " + yourAudioPort);
+    debugLog("yourVideoPort: " + yourVideoPort);
     ajaxConfig();
+    ajaxAsTopo();
 };
 
 function debugLog(msg) {
     console.log(msg);
     $("#videoout").append("\n" + msg + ".");
     $(".stdout").scrollTop($(".stdout")[0].scrollHeight);
+}
+
+function ajaxAsTopo() {
+    return $.ajax({
+        url : 'getastopo',
+        type : 'post',
+        dataType : "json",
+        data : {
+            "src" : yourIa
+        },
+        timeout : 10000,
+        success : isAsTopoComplete,
+        error : function(jqXHR, textStatus, errorThrown) {
+            showError(this.url + ' ' + textStatus + ': ' + errorThrown);
+        },
+    });
+}
+
+function isAsTopoComplete(data, textStatus, jqXHR) {
+    console.debug(data);
+
+    yourAddr = ipv4Raw2Read(data.if_info.RawEntries[0].HostInfo.Addrs.Ipv4);
+    debugLog("yourAddr: " + yourAddr);
 }
 
 function ajaxConfig() {
@@ -79,18 +118,27 @@ function isRTCConfigComplete(data, textStatus, jqXHR) {
     firebase.initializeApp(firebaseConfig);
     database = firebase.database().ref();
     pc.onicecandidate = function(event) {
-        event.candidate ? sendMessage(yourId, JSON.stringify({
-            'ice' : event.candidate
-        })) : console.log("Sent All Ice");
+        if (event.candidate) {
+            sendMessage(yourId, JSON.stringify({
+                'ice' : event.candidate
+            }));
+        } else {
+            console.log("Sent All Ice");
 
-        // addresses now complete?, so open netcat chat
+            // addresses now complete?, so open netcat chat
 
-        // netcat listen to stdout on local IA yourChatPort
-        // - on stdout.read(msg), append.txt("friend:"+msg)
+            // netcat listen to stdout on local IA yourChatPort
+            // - on stdout.read(msg), append.txt("friend:"+msg)
 
-        // netcat serve to stdin on remote IA friendChatPort
-        // - on btn-send(msg), stdin.write(), append.txt("self:"+msg)
-
+            // netcat serve to stdin on remote IA friendChatPort
+            // - on btn-send(msg), stdin.write(), append.txt("self:"+msg)
+            if (friendsIa && friendsAddr && friendsChatPort) {
+                var local = formatScionAddr(yourIa, yourAddr, yourChatPort);
+                var remote = formatScionAddr(friendsIa, friendsAddr,
+                        friendsChatPort);
+                openNetcatChat(local, remote);
+            }
+        }
     };
     pc.onaddstream = function(event) {
         friendsVideo.srcObject = event.stream;
@@ -102,11 +150,23 @@ function isRTCConfigComplete(data, textStatus, jqXHR) {
     showMyFace();
 }
 
+function formatScionAddr(ia, addr, port) {
+    return ia + ",[" + addr + "]:" + port;
+}
+
+function randomPort() {
+    return Math.floor(Math.random() * 10000) + 30000;
+}
+
 function sendMessage(senderId, data) {
     debugLog("Called sendMessage()");
     var msg = database.push({
         sender : senderId,
         ia : yourIa,
+        addr : yourAddr,
+        portC : yourChatPort,
+        portA : yourAudioPort,
+        portV : yourVideoPort,
         message : data
     });
     msg.remove();
@@ -119,6 +179,10 @@ function readMessage(data) {
     var sender = data.val().sender;
     if (sender != yourId) {
         friendsIa = data.val().ia;
+        friendsAddr = data.val().addr;
+        friendsChatPort = data.val().portC;
+        friendsAudioPort = data.val().portA;
+        friendsVideoPort = data.val().portV;
         showPeerIa(friendsIa);
         if (msg.ice != undefined) {
             pc.addIceCandidate(new RTCIceCandidate(msg.ice));
@@ -145,53 +209,6 @@ function readMessage(data) {
     }
     updateAddrs();
 };
-
-function setupSigConnection() {
-    if (!pc.currentLocalDescription) {
-        debugLog("local conn undefined");
-        return;
-    }
-    if (!pc.currentRemoteDescription) {
-        debugLog("remote conn undefined");
-        return;
-    }
-    var form_data = [ {
-        "name" : "ia_cli",
-        "value" : yourIa
-    }, {
-        "name" : "addr_cli",
-        "value" : getSdpAddr(pc.currentLocalDescription.sdp)
-    }, {
-        "name" : "port_cli",
-        "value" : "30001"
-    }, {
-        "name" : "ia_ser",
-        "value" : friendsIa
-    }, {
-        "name" : "addr_ser",
-        "value" : getSdpAddr(pc.currentRemoteDescription.sdp)
-    }, {
-        "name" : "port_ser",
-        "value" : "30100"
-    }, {
-        "name" : "apps",
-        "value" : "sig"
-    }, {
-        "name" : "continuous",
-        "value" : false
-    }, {
-        "name" : "interval",
-        "value" : "1"
-    } ];
-    debugLog('req: ' + JSON.stringify(form_data));
-    $.post('/command', form_data, function(resp, status, jqXHR) {
-        debugLog('resp: ' + resp);
-        // handleSigResponse(resp);
-    }).fail(function(error) {
-        debugLog('error: ' + error.responseJSON);
-        // handleGeneralResponse();
-    });
-}
 
 function updateAddrs() {
     if (pc.currentLocalDescription) {
@@ -225,18 +242,8 @@ function showMyFace() {
     });
 }
 
-var callerChatPort = 8881;
-var answererChatPort = 8882;
-// defaults
-var yourChatPort = callerChatPort;
-var friendChatPort = answererChatPort;
-
 function showFriendsFace() {
     debugLog("Called showFriendsFace()");
-
-    // use call button to establish deterministic port
-    var yourChatPort = answererChatPort;
-    var friendChatPort = callerChatPort;
 
     pc.createOffer()
     // place offer in local conn

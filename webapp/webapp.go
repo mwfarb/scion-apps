@@ -808,6 +808,16 @@ var upgrader = websocket.Upgrader{
 }
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
+	local := r.FormValue("local")
+	remote := r.FormValue("remote")
+
+	localAddr := strings.Split(local, ":")[0]
+	localPort := strings.Split(local, ":")[1]
+	remoteAddr := strings.Split(remote, ":")[0]
+	remotePort := strings.Split(remote, ":")[1]
+
+	log.Debug("", localAddr, localPort, remoteAddr, remotePort)
+
 	// open websocket server connection
 	conn, err := upgrader.Upgrade(w, r, nil)
 	defer conn.Close()
@@ -817,6 +827,20 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO use passed in ports for servers/clients here
+	// netcat -local 1-ff00:0:111,[127.0.0.1] 1-ff00:0:112,[127.0.0.2] 4141
+	// netcat -l -local 1-ff00:0:112,[127.0.0.2] 4141
+
+	//	// listen
+	//	var command []string
+	//	installpath := getClientLocationBin("netcat")
+	//	loc := fmt.Sprintf("-local=%s", localAddr)
+	//	command = append(command, "-l", loc, localPort)
+	//
+	//	// serve
+	//	var command []string
+	//	installpath := getClientLocationBin("netcat")
+	//	loc := fmt.Sprintf("-local=%s", localAddr)
+	//	command = append(command, "-l", loc, remoteAddr, remotePort)
 
 	//	// TODO open scion netcat server to friend and ready stdin...
 	//	cmdCli := exec.Command(cmdName, cmdArgs...)
@@ -824,7 +848,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	//	scanner := bufio.NewScanner(cmdReader)
 	//	go func() {
 	//		for scanner.Scan() {
-	//			fmt.Printf(scanner.Text())
+	//			log.Info(scanner.Text())
 	//		}
 	//	}()
 	//	cmd.Start()
@@ -836,7 +860,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	//	scanner := bufio.NewScanner(cmdReader)
 	//	go func() {
 	//		for scanner.Scan() {
-	//			fmt.Printf(scanner.Text())
+	//			log.Info(scanner.Text())
 	//		}
 	//	}()
 	//	cmd.Start()
@@ -851,7 +875,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Print the message to the console
-		fmt.Printf("sent: %s\n", string(msg))
+		log.Info("sent: %s\n", string(msg))
 
 		// TODO pipe message to netcat stdin...
 

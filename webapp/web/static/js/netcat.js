@@ -22,22 +22,26 @@ var yourMsg, logMsgs, socket;
 $(document).ready(function() {
     yourMsg = document.getElementById("yourMsg");
     logMsgs = document.getElementById("logMsgs");
-    socket = new WebSocket("ws://" + document.location.host + "/echo");
+});
 
+function openNetcatChat(localAddr, remoteAddr) {
+    socket = new WebSocket(encodeURI("ws://" + document.location.host
+            + "/echo?local=" + localAddr + "&remote=" + remoteAddr));
     socket.onopen = function() {
-        appendLog("Status: Connected\n");
+        appendLog("Status: WS connected\n");
     };
 
     socket.onmessage = function(e) {
-        appendLog("Server: " + e.data + "\n");
+        appendLog("Friend: " + e.data + "\n");
     };
-
-});
-
+}
 
 function sendMsg() {
-    socket.send(yourMsg.value);
-    yourMsg.value = "";
+    if (socket) {
+        socket.send(yourMsg.value);
+        appendLog("You: " + yourMsg.value + "\n");
+        yourMsg.value = "";
+    }
 }
 
 function appendLog(msg) {
