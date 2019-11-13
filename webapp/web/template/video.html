@@ -122,9 +122,11 @@ button {
    </div>
  -->
 
-   <input id="yourMsg" type="text" /> <input type="button" value="Send"
-    onclick="sendMsg();">
-   <pre id="logMsgs" class="stdout"></pre>
+   <form onsubmit="sendMsg();">
+    <input id="yourMsg" type="text"> <input type="submit"
+     value="Send">
+    <pre id="logMsgs" class="stdout"></pre>
+   </form>
 
   </div>
 

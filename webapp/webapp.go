@@ -811,12 +811,10 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	local := r.FormValue("local")
 	remote := r.FormValue("remote")
 
-	localAddr := strings.Split(local, ":")[0]
-	localPort := strings.Split(local, ":")[1]
-	remoteAddr := strings.Split(remote, ":")[0]
-	remotePort := strings.Split(remote, ":")[1]
-
-	log.Debug("", localAddr, localPort, remoteAddr, remotePort)
+	localAddr := local[:strings.LastIndex(local, ":")]
+	localPort := local[strings.LastIndex(local, ":")+1:]
+	remoteAddr := remote[:strings.LastIndex(remote, ":")]
+	remotePort := remote[strings.LastIndex(remote, ":")+1:]
 
 	// open websocket server connection
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -826,66 +824,57 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO use passed in ports for servers/clients here
+	// use passed in ports for servers/clients here
 	// netcat -local 1-ff00:0:111,[127.0.0.1] 1-ff00:0:112,[127.0.0.2] 4141
 	// netcat -l -local 1-ff00:0:112,[127.0.0.2] 4141
 
-	//	// listen
-	//	var command []string
-	//	installpath := getClientLocationBin("netcat")
-	//	loc := fmt.Sprintf("-local=%s", localAddr)
-	//	command = append(command, "-l", loc, localPort)
-	//
-	//	// serve
-	//	var command []string
-	//	installpath := getClientLocationBin("netcat")
-	//	loc := fmt.Sprintf("-local=%s", localAddr)
-	//	command = append(command, "-l", loc, remoteAddr, remotePort)
+	installpath := getClientLocationBin("netcat")
+	cmdloc := fmt.Sprintf("-local=%s", localAddr)
 
-	//	// TODO open scion netcat server to friend and ready stdin...
-	//	cmdCli := exec.Command(cmdName, cmdArgs...)
-	//	cmdReader, _ := cmdCli.StdinPipe()
-	//	scanner := bufio.NewScanner(cmdReader)
-	//	go func() {
-	//		for scanner.Scan() {
-	//			log.Info(scanner.Text())
-	//		}
-	//	}()
-	//	cmd.Start()
-	//	err = cmd.Wait()
-	//
-	//	// TODO open scion netcat client listen from friend and ready stdout...
-	//	cmd := exec.Command(cmdName, cmdArgs...)
-	//	cmdReader, _ := cmd.StdoutPipe()
-	//	scanner := bufio.NewScanner(cmdReader)
-	//	go func() {
-	//		for scanner.Scan() {
-	//			log.Info(scanner.Text())
-	//		}
-	//	}()
-	//	cmd.Start()
-	//	err = cmd.Wait()
-
+	// serve
+	serveArgs := []string{installpath, cmdloc, remoteAddr, remotePort}
+	log.Info("Executing:", "command", strings.Join(serveArgs, " "))
+	commandServe := exec.Command(serveArgs[0], serveArgs[1:]...)
+	// open scion netcat serve to friend and ready stdin...
+	stdin, err := commandServe.StdinPipe()
+	CheckError(err)
+	err = commandServe.Start()
+	CheckError(err)
 	// monitor websocket for input
-	for {
-		// message from browser
-		msgType, msg, err := conn.ReadMessage()
-		if CheckError(err) {
-			return
+	go func() {
+		for {
+			// message from browser
+			_, msg, err := conn.ReadMessage()
+			CheckError(err)
+			// pipe message to netcat stdin...
+			log.Debug("netcat send:", string(msg), "msg")
+			stdin.Write(append(msg, '\n'))
 		}
+	}()
+	err = commandServe.Wait()
+	CheckError(err)
 
-		// Print the message to the console
-		log.Info("sent: %s\n", string(msg))
-
-		// TODO pipe message to netcat stdin...
-
-		// when netcat scanner from stdout reads, send message to browser
-		err = conn.WriteMessage(msgType, msg)
-		if CheckError(err) {
-			return
+	// listen
+	listenArgs := []string{installpath, "-l", cmdloc, localPort}
+	log.Info("Executing:", "command", strings.Join(listenArgs, " "))
+	commandListen := exec.Command(listenArgs[0], listenArgs[1:]...)
+	// open scion netcat client listen from friend and ready stdout...
+	stdout, err := commandListen.StdoutPipe()
+	CheckError(err)
+	reader := bufio.NewReader(stdout)
+	go func(reader io.Reader) {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			// recieved text on stdin while running netcat...
+			msg := scanner.Text()
+			log.Debug("netcat recv:", string(msg), "msg")
+			// send message to browser
+			err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
+			CheckError(err)
 		}
-
-	}
-
-	// TODO close all open netcat commands
+	}(reader)
+	err = commandListen.Start()
+	CheckError(err)
+	err = commandListen.Wait()
+	CheckError(err)
 }

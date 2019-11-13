@@ -25,6 +25,9 @@ $(document).ready(function() {
 });
 
 function openNetcatChat(localAddr, remoteAddr) {
+
+    // TODO chrome throws an exception
+
     socket = new WebSocket(encodeURI("ws://" + document.location.host
             + "/echo?local=" + localAddr + "&remote=" + remoteAddr));
     socket.onopen = function() {
