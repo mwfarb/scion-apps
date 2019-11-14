@@ -29,7 +29,8 @@ function openNetcatChat(localAddr, remoteAddr) {
     // TODO chrome throws an exception
 
     socket = new WebSocket(encodeURI("ws://" + document.location.host
-            + "/echo?local=" + localAddr + "&remote=" + remoteAddr));
+            + "/wschat?local=" + localAddr + "&remote=" + remoteAddr));
+
     socket.onopen = function() {
         appendLog("Status: WS connected\n");
     };

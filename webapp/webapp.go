@@ -230,7 +230,7 @@ func initServeHandlers() {
 	fsFileBrowser := http.FileServer(http.Dir(options.BrowseRoot))
 	http.Handle("/files/", http.StripPrefix("/files/", fsFileBrowser))
 	http.HandleFunc("/video", videoHandler)
-	http.HandleFunc("/echo", echoHandler)
+	http.HandleFunc("/wschat", chatTextHandler)
 
 	http.HandleFunc("/command", commandHandler)
 	http.HandleFunc("/imglast", findImageHandler)
@@ -807,7 +807,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func echoHandler(w http.ResponseWriter, r *http.Request) {
+func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	local := r.FormValue("local")
 	remote := r.FormValue("remote")
 
@@ -847,7 +847,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 			_, msg, err := conn.ReadMessage()
 			CheckError(err)
 			// pipe message to netcat stdin...
-			log.Debug("netcat send:", string(msg), "msg")
+			log.Debug("netcat send:", "msg", string(msg))
 			stdin.Write(append(msg, '\n'))
 		}
 	}()
@@ -867,7 +867,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		for scanner.Scan() {
 			// recieved text on stdin while running netcat...
 			msg := scanner.Text()
-			log.Debug("netcat recv:", string(msg), "msg")
+			log.Debug("netcat recv:", "msg", string(msg))
 			// send message to browser
 			err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
 			CheckError(err)

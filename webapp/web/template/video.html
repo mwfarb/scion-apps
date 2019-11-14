@@ -122,11 +122,9 @@ button {
    </div>
  -->
 
-   <form onsubmit="sendMsg();">
-    <input id="yourMsg" type="text"> <input type="submit"
-     value="Send">
-    <pre id="logMsgs" class="stdout"></pre>
-   </form>
+   <input id="yourMsg" type="text" placeholder="message text"> <input
+    id="btnSend" type="button" value="Send" onclick="sendMsg();">
+   <pre id="logMsgs" class="stdout"></pre>
 
   </div>
 
@@ -143,6 +141,14 @@ button {
 
 <script type="text/javascript">
     yourIa = {{.MyIA}};
+    // send the message after enter key as well
+    $('#yourMsg').keydown(function(e){
+        if(event.keyCode == 13) {
+           sendMsg();
+           e.preventDefault();
+           return false;
+        }
+    });
 </script>
 <script type="text/javascript" src="static/js/video.js"></script>
 
