@@ -45,11 +45,11 @@ import (
 var GOPATH = os.Getenv("GOPATH")
 
 // browseRoot is browse-only, consider security (def: cwd)
-var browseRoot = flag.String("r", ".",
+var browseRoot = flag.String("r", "./web/data",
 	"Root path to read/browse from, CAUTION: read-access granted from -a and -p.")
 
 // staticRoot for serving/writing static data
-var staticRoot = flag.String("srvroot", path.Join(GOPATH, "src/github.com/netsec-ethz/scion-apps/webapp/web"),
+var staticRoot = flag.String("srvroot", path.Join(GOPATH, "./web"),
 	"Path to read/write web server files.")
 
 // appsRoot is the root location of scionlab apps.
