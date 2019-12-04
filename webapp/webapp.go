@@ -824,12 +824,35 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	// use passed in ports for servers/clients here
 	// netcat -local 1-ff00:0:111,[127.0.0.1] 1-ff00:0:112,[127.0.0.2] 4141
 	// netcat -l -local 1-ff00:0:112,[127.0.0.2] 4141
-
 	installpath := getClientLocationBin("netcat")
 	cmdloc := fmt.Sprintf("-local=%s", localAddr)
 
+	// find TLS cert, or generate if missing
+	// openssl req -newkey rsa:2048 -nodes -keyout ./key.pem -x509 -days 365 -out ./cert.pem -subj '/CN=localhost'
+	keyPath := path.Join(options.StaticRoot, "config/key.pem")
+	certPath := path.Join(options.StaticRoot, "config/cert.pem")
+	cmdKey := fmt.Sprintf("-tlsKey=%s", keyPath)
+	cmdCert := fmt.Sprintf("-tlsCert=%s", certPath)
+	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+		certArgs := []string{"openssl",
+			"req",
+			"-newkey rsa:2048",
+			"-nodes",
+			"-keyout",
+			keyPath,
+			"-x509",
+			"-days 365",
+			"-out",
+			certPath,
+			"-subj '/CN=localhost'"}
+		log.Info("Executing:", "command", strings.Join(certArgs, " "))
+		commandGenCert := exec.Command(certArgs[0], certArgs[1:]...)
+		err := commandGenCert.Run()
+		CheckError(err)
+	}
+
 	// listen
-	listenArgs := []string{installpath, "-l", cmdloc, localPort}
+	listenArgs := []string{installpath, "-l", cmdloc, localPort, cmdKey, cmdCert}
 	log.Info("Executing:", "command", strings.Join(listenArgs, " "))
 	commandListen := exec.Command(listenArgs[0], listenArgs[1:]...)
 	// open scion netcat client listen from friend and ready stdout...
