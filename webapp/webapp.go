@@ -184,7 +184,6 @@ func main() {
 	appsBuildCheck("sensorapp")
 	appsBuildCheck("echo")
 	appsBuildCheck("traceroute")
-	appsBuildCheck("sig")
 	appsBuildCheck("netcat")
 
 	initServeHandlers()
@@ -610,8 +609,6 @@ func getClientLocationBin(app string) string {
 		binname = path.Join(options.AppsRoot, "bwtestclient")
 	case "echo", "traceroute":
 		binname = path.Join(options.ScionBin, "scmp")
-	case "sig": // TODO: use options.ScionBin when sig is packaged
-		binname = path.Join(options.AppsRoot, "sig")
 	case "netcat":
 		binname = path.Join(options.AppsRoot, "netcat")
 	}
@@ -855,8 +852,8 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	err = commandListen.Wait()
 	CheckError(err)
 
-	// TODO: (mwfarb) add resonable retry logic when handskae timeout occurs
-	
+	// TODO: (mwfarb) add resonable retry logic when handshake timeout occurs
+
 	// serve
 	serveArgs := []string{installpath, cmdloc, remoteAddr, remotePort}
 	log.Info("Executing:", "command", strings.Join(serveArgs, " "))

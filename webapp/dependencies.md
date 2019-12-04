@@ -29,7 +29,6 @@ webapp -h
 
 ## SCION Binaries Used/Checked
 - $sbin/scmp
-- $sabin/sig
 - $sabin/bwtestclient
 - $sabin/imagefetcher
 - $sabin/sensorfetcher
