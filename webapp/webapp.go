@@ -831,29 +831,6 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	installpath := getClientLocationBin("netcat")
 	cmdloc := fmt.Sprintf("-local=%s", localAddr)
 
-	// serve
-	serveArgs := []string{installpath, cmdloc, remoteAddr, remotePort}
-	log.Info("Executing:", "command", strings.Join(serveArgs, " "))
-	commandServe := exec.Command(serveArgs[0], serveArgs[1:]...)
-	// open scion netcat serve to friend and ready stdin...
-	stdin, err := commandServe.StdinPipe()
-	CheckError(err)
-	err = commandServe.Start()
-	CheckError(err)
-	// monitor websocket for input
-	go func() {
-		for {
-			// message from browser
-			_, msg, err := conn.ReadMessage()
-			CheckError(err)
-			// pipe message to netcat stdin...
-			log.Debug("netcat send:", "msg", string(msg))
-			stdin.Write(append(msg, '\n'))
-		}
-	}()
-	err = commandServe.Wait()
-	CheckError(err)
-
 	// listen
 	listenArgs := []string{installpath, "-l", cmdloc, localPort}
 	log.Info("Executing:", "command", strings.Join(listenArgs, " "))
@@ -876,5 +853,30 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	err = commandListen.Start()
 	CheckError(err)
 	err = commandListen.Wait()
+	CheckError(err)
+
+	// TODO: (mwfarb) add resonable retry logic when handskae timeout occurs
+	
+	// serve
+	serveArgs := []string{installpath, cmdloc, remoteAddr, remotePort}
+	log.Info("Executing:", "command", strings.Join(serveArgs, " "))
+	commandServe := exec.Command(serveArgs[0], serveArgs[1:]...)
+	// open scion netcat serve to friend and ready stdin...
+	stdin, err := commandServe.StdinPipe()
+	CheckError(err)
+	err = commandServe.Start()
+	CheckError(err)
+	// monitor websocket for input
+	go func() {
+		for {
+			// message from browser
+			_, msg, err := conn.ReadMessage()
+			CheckError(err)
+			// pipe message to netcat stdin...
+			log.Debug("netcat send:", "msg", string(msg))
+			stdin.Write(append(msg, '\n'))
+		}
+	}()
+	err = commandServe.Wait()
 	CheckError(err)
 }
