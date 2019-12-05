@@ -18,6 +18,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -230,6 +231,7 @@ func initServeHandlers() {
 	http.Handle("/files/", http.StripPrefix("/files/", fsFileBrowser))
 	http.HandleFunc("/video", videoHandler)
 	http.HandleFunc("/wschat", chatTextHandler)
+	http.HandleFunc("/chatcfg", chatConfigHandler)
 
 	http.HandleFunc("/command", commandHandler)
 	http.HandleFunc("/imglast", findImageHandler)
@@ -804,6 +806,33 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+func chatConfigHandler(w http.ResponseWriter, r *http.Request) {
+	// find TLS cert, or generate if missing
+	// openssl req -newkey rsa:2048 -nodes -keyout ./key.pem -x509 -days 365 -out ./cert.pem -subj '/CN=localhost'
+	keyPath := path.Join(options.StaticRoot, "key.pem")
+	certPath := path.Join(options.StaticRoot, "cert.pem")
+	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+		certArgs := []string{"openssl", "req",
+			"-newkey", "rsa:2048",
+			"-nodes",
+			"-keyout", keyPath,
+			"-x509",
+			"-days", "365",
+			"-out", certPath,
+			"-subj", "/CN=localhost"}
+		//"-subj", "'/'"}
+		log.Info("Executing:", "command", strings.Join(certArgs, " "))
+		cmd := exec.Command(certArgs[0], certArgs[1:]...)
+
+		var outb, errb bytes.Buffer
+		cmd.Stdout = &outb
+		cmd.Stderr = &errb
+		err := cmd.Run()
+		CheckError(err)
+		log.Info("results:", "out:", outb.String(), "err:", errb.String())
+	}
+}
+
 func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	local := r.FormValue("local")
 	remote := r.FormValue("remote")
@@ -826,54 +855,10 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	// netcat -l -local 1-ff00:0:112,[127.0.0.2] 4141
 	installpath := getClientLocationBin("netcat")
 	cmdloc := fmt.Sprintf("-local=%s", localAddr)
-
-	// find TLS cert, or generate if missing
-	// openssl req -newkey rsa:2048 -nodes -keyout ./key.pem -x509 -days 365 -out ./cert.pem -subj '/CN=localhost'
-	keyPath := path.Join(options.StaticRoot, "config/key.pem")
-	certPath := path.Join(options.StaticRoot, "config/cert.pem")
+	keyPath := path.Join(options.StaticRoot, "key.pem")
+	certPath := path.Join(options.StaticRoot, "cert.pem")
 	cmdKey := fmt.Sprintf("-tlsKey=%s", keyPath)
 	cmdCert := fmt.Sprintf("-tlsCert=%s", certPath)
-	if _, err := os.Stat(certPath); os.IsNotExist(err) {
-		certArgs := []string{"openssl",
-			"req",
-			"-newkey rsa:2048",
-			"-nodes",
-			"-keyout",
-			keyPath,
-			"-x509",
-			"-days 365",
-			"-out",
-			certPath,
-			"-subj '/CN=localhost'"}
-		log.Info("Executing:", "command", strings.Join(certArgs, " "))
-		commandGenCert := exec.Command(certArgs[0], certArgs[1:]...)
-		err := commandGenCert.Run()
-		CheckError(err)
-	}
-
-	// listen
-	listenArgs := []string{installpath, "-l", cmdloc, localPort, cmdKey, cmdCert}
-	log.Info("Executing:", "command", strings.Join(listenArgs, " "))
-	commandListen := exec.Command(listenArgs[0], listenArgs[1:]...)
-	// open scion netcat client listen from friend and ready stdout...
-	stdout, err := commandListen.StdoutPipe()
-	CheckError(err)
-	reader := bufio.NewReader(stdout)
-	go func(reader io.Reader) {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			// recieved text on stdin while running netcat...
-			msg := scanner.Text()
-			log.Debug("netcat recv:", "msg", string(msg))
-			// send message to browser
-			err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
-			CheckError(err)
-		}
-	}(reader)
-	err = commandListen.Start()
-	CheckError(err)
-	err = commandListen.Wait()
-	CheckError(err)
 
 	// TODO: (mwfarb) add resonable retry logic when handshake timeout occurs
 
@@ -898,5 +883,29 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	err = commandServe.Wait()
+	CheckError(err)
+
+	// listen
+	listenArgs := []string{installpath, "-l", cmdloc, localPort, cmdKey, cmdCert}
+	log.Info("Executing:", "command", strings.Join(listenArgs, " "))
+	commandListen := exec.Command(listenArgs[0], listenArgs[1:]...)
+	// open scion netcat client listen from friend and ready stdout...
+	stdout, err := commandListen.StdoutPipe()
+	CheckError(err)
+	reader := bufio.NewReader(stdout)
+	go func(reader io.Reader) {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			// recieved text on stdin while running netcat...
+			msg := scanner.Text()
+			log.Debug("netcat recv:", "msg", string(msg))
+			// send message to browser
+			err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
+			CheckError(err)
+		}
+	}(reader)
+	err = commandListen.Start()
+	CheckError(err)
+	err = commandListen.Wait()
 	CheckError(err)
 }

@@ -59,14 +59,31 @@ window.onload = function(event) {
     debugLog("yourChatPort: " + yourChatPort);
     debugLog("yourAudioPort: " + yourAudioPort);
     debugLog("yourVideoPort: " + yourVideoPort);
-    ajaxConfig();
+    ajaxVizConfig();
     ajaxAsTopo();
+    ajaxChatConfig();
 };
 
 function debugLog(msg) {
     console.log(msg);
     $("#videoout").append("\n" + msg + ".");
     $(".stdout").scrollTop($(".stdout")[0].scrollHeight);
+}
+
+function ajaxChatConfig() {
+    return $.ajax({
+        url : 'chatcfg',
+        type : 'post',
+        timeout : 10000,
+        success : isChatConfigComplete,
+        error : function(jqXHR, textStatus, errorThrown) {
+            showError(this.url + ' ' + textStatus + ': ' + errorThrown);
+        },
+    });
+}
+
+function isChatConfigComplete(data, textStatus, jqXHR) {
+    console.debug(data);
 }
 
 function ajaxAsTopo() {
@@ -92,7 +109,7 @@ function isAsTopoComplete(data, textStatus, jqXHR) {
     debugLog("yourAddr: " + yourAddr);
 }
 
-function ajaxConfig() {
+function ajaxVizConfig() {
     return $.ajax({
         url : 'config',
         type : 'get',
@@ -186,25 +203,27 @@ function readMessage(data) {
         showPeerIa(friendsIa);
         if (msg.ice != undefined) {
             pc.addIceCandidate(new RTCIceCandidate(msg.ice));
-        } else if (msg.sdp.type == "offer") {
-            // recieved offer, store as remote conn
-            pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
-            // create answer
-            .then(function() {
-                return pc.createAnswer();
-            })
-            // store answer as local conn
-            .then(function(answer) {
-                pc.setLocalDescription(answer);
-            })
-            // send answer
-            .then(function() {
-                sendMessage(yourId, JSON.stringify({
-                    'sdp' : pc.localDescription
-                }));
-            });
-        } else if (msg.sdp.type == "answer") {
-            pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+        } else if (msg.sdp) {
+            if (msg.sdp.type == "offer") {
+                // recieved offer, store as remote conn
+                pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
+                // create answer
+                .then(function() {
+                    return pc.createAnswer();
+                })
+                // store answer as local conn
+                .then(function(answer) {
+                    pc.setLocalDescription(answer);
+                })
+                // send answer
+                .then(function() {
+                    sendMessage(yourId, JSON.stringify({
+                        'sdp' : pc.localDescription
+                    }));
+                });
+            } else if (msg.sdp.type == "answer") {
+                pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+            }
         }
     }
     updateAddrs();
