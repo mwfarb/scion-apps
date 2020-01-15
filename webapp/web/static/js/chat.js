@@ -153,7 +153,8 @@ function isRTCConfigComplete(data, textStatus, jqXHR) {
                 var local = formatScionAddr(yourIa, yourAddr, yourChatPort);
                 var remote = formatScionAddr(friendsIa, friendsAddr,
                         friendsChatPort);
-                openNetcatChat(local, remote);
+                openNetcatChatText(local, remote);
+                openNetcatChatVideo(local, remote);
             }
         }
     };
@@ -253,6 +254,7 @@ function showMyFace() {
     // place your media in local object
     .then(function(stream) {
         yourVideo.srcObject = stream;
+        sendVideo(stream);
         return stream;
     })
     // add your media to stream

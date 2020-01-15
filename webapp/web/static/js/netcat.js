@@ -17,38 +17,60 @@
 // cat ~/Desktop/out-2019-08-06.ogv | netcat -b -local 1-ff00:0:112,[127.0.0.2] 1-ff00:0:111,[127.0.0.1] 4142
 // netcat -l -b -local 1-ff00:0:111,[127.0.0.1] 4142 | mplayer -
 
-var yourMsg, logMsgs, socket;
+var yourMsg, yourVideo, logMsgs, socketT, socketV;
 
 $(document).ready(function() {
     yourMsg = document.getElementById("yourMsg");
+    yourVideo = document.getElementById("yourVideo");
     logMsgs = document.getElementById("logMsgs");
 });
 
-function openNetcatChat(localAddr, remoteAddr) {
+function openNetcatChatText(localAddr, remoteAddr) {
 
     // TODO chrome throws an exception
 
-    socket = new WebSocket(encodeURI("ws://" + document.location.host
+    socketT = new WebSocket(encodeURI("ws://" + document.location.host
             + "/wschat?local=" + localAddr + "&remote=" + remoteAddr));
 
-    socket.onopen = function() {
-        appendLog("Status: WS connected\n");
+    socketT.onopen = function() {
+        appendChatDisplay("Status: WS connected\n");
     };
 
-    socket.onmessage = function(e) {
-        appendLog("Friend: " + e.data + "\n");
+    socketT.onmessage = function(e) {
+        appendChatDisplay("Friend: " + e.data + "\n");
     };
 }
 
-function sendMsg() {
-    if (socket) {
-        socket.send(yourMsg.value);
-        appendLog("You: " + yourMsg.value + "\n");
+function openNetcatChatVideo(localAddr, remoteAddr) {
+    socketV = new WebSocket(encodeURI("ws://" + document.location.host
+            + "/wsvideo?local=" + localAddr + "&remote=" + remoteAddr));
+
+    socketV.onopen = function() {
+        // TODO appendChatDisplay("Status: WS connected\n");
+    };
+
+    socketV.onmessage = function(e) {
+        // TODO appendChatDisplay("Friend: " + e.data + "\n");
+    };
+}
+
+function sendTextMsg() {
+    if (socketT) {
+        socketT.send(yourMsg.value);
+        appendChatDisplay("You: " + yourMsg.value + "\n");
         yourMsg.value = "";
     }
 }
 
-function appendLog(msg) {
+function sendVideoStream() {
+    if (socketV) {
+        socketT.send(yourMsg.value);
+        appendChatDisplay("You: " + yourMsg.value + "\n");
+        yourMsg.value = "";
+    }
+}
+
+function appendChatDisplay(msg) {
     var doScroll = logMsgs.scrollTop > logMsgs.scrollHeight
             - logMsgs.clientHeight - 1;
     var item = document.createElement("div");

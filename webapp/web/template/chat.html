@@ -1,4 +1,4 @@
-{{define "video"}} {{template "header" .}}
+{{define "chat"}} {{template "header" .}}
 
 <link
  href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"
@@ -73,8 +73,7 @@ button {
 
  <div id='as-error'></div>
 
- <h2>SCIONLab Video</h2>
- WIP testing for WebRTC -- DANGER! -- There be dragons here.
+ <h2>SCIONLab Chat</h2>
 
  <div id="videoFrame">
 
@@ -110,20 +109,9 @@ button {
   </div>
 
   <div class="controls-line">
-   <!--    <div id="connection-group">
-    <div>
-     <input type="radio" id="scion" name="connection" value="scion"
-      disabled> <label for="scion">SCION</label>
-    </div>
-    <div>
-     <input type="radio" id="internet" name="connection"
-      value="internet" checked disabled> <label for="internet">Internet</label>
-    </div>
-   </div>
- -->
 
    <input id="yourMsg" type="text" placeholder="message text"> <input
-    id="btnSend" type="button" value="Send" onclick="sendMsg();">
+    id="btnSend" type="button" value="Send" onclick="sendTextMsg();">
    <pre id="logMsgs" class="stdout"></pre>
 
   </div>
@@ -144,12 +132,12 @@ button {
     // send the message after enter key as well
     $('#yourMsg').keydown(function(e){
         if(event.keyCode == 13) {
-           sendMsg();
+           sendTextMsg();
            e.preventDefault();
            return false;
         }
     });
 </script>
-<script type="text/javascript" src="static/js/video.js"></script>
+<script type="text/javascript" src="static/js/chat.js"></script>
 
 {{template "footer" .}} {{end}}

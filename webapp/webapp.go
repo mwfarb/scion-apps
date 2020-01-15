@@ -229,8 +229,9 @@ func initServeHandlers() {
 	http.Handle("/data/", http.StripPrefix("/data/", fsData))
 	fsFileBrowser := http.FileServer(http.Dir(options.BrowseRoot))
 	http.Handle("/files/", http.StripPrefix("/files/", fsFileBrowser))
-	http.HandleFunc("/video", videoHandler)
+	http.HandleFunc("/chat", chatHandler)
 	http.HandleFunc("/wschat", chatTextHandler)
+	http.HandleFunc("/wsvideo", chatVideoHandler)
 	http.HandleFunc("/chatcfg", chatConfigHandler)
 
 	http.HandleFunc("/command", commandHandler)
@@ -275,7 +276,7 @@ func prepareTemplates(srcpath string) *template.Template {
 		path.Join(srcpath, "template/astopo.html"),
 		path.Join(srcpath, "template/crt.html"),
 		path.Join(srcpath, "template/trc.html"),
-		path.Join(srcpath, "template/video.html"),
+		path.Join(srcpath, "template/chat.html"),
 	))
 }
 
@@ -326,8 +327,8 @@ func trcHandler(w http.ResponseWriter, r *http.Request) {
 	display(w, "trc", &Page{Title: "SCIONLab TRC", MyIA: settings.MyIA})
 }
 
-func videoHandler(w http.ResponseWriter, r *http.Request) {
-	display(w, "video", &Page{Title: "SCIONLab Video", MyIA: settings.MyIA})
+func chatHandler(w http.ResponseWriter, r *http.Request) {
+	display(w, "chat", &Page{Title: "SCIONLab Video", MyIA: settings.MyIA})
 }
 
 // There're three CmdItem, BwTestItem, EchoItem and TracerouteItem
@@ -786,6 +787,82 @@ func getIAsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, string(iasJSON))
 }
 
+func chatVideoHandler(w http.ResponseWriter, r *http.Request) {
+	local := r.FormValue("local")
+	remote := r.FormValue("remote")
+
+	localAddr := local[:strings.LastIndex(local, ":")]
+	localPort := local[strings.LastIndex(local, ":")+1:]
+	remoteAddr := remote[:strings.LastIndex(remote, ":")]
+	remotePort := remote[strings.LastIndex(remote, ":")+1:]
+
+	// open websocket server connection
+	conn, err := upgrader.Upgrade(w, r, nil)
+	defer conn.Close()
+	if CheckError(err) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	installpath := getClientLocationBin("netcat")
+	cmdloc := fmt.Sprintf("-local=%s", localAddr)
+	keyPath := path.Join(options.StaticRoot, "key.pem")
+	certPath := path.Join(options.StaticRoot, "cert.pem")
+	cmdKey := fmt.Sprintf("-tlsKey=%s", keyPath)
+	cmdCert := fmt.Sprintf("-tlsCert=%s", certPath)
+
+	// serve
+	serveArgs := []string{installpath, cmdloc, remoteAddr, remotePort}
+	log.Info("Run NC Video:", "command", strings.Join(serveArgs, " "))
+	commandServe := exec.Command(serveArgs[0], serveArgs[1:]...)
+	// open scion netcat serve to friend and ready stdin...
+	stdin, err := commandServe.StdinPipe()
+	CheckError(err)
+	err = commandServe.Start()
+	CheckError(err)
+	// monitor websocket for input
+	go func() {
+		for {
+			// message from browser
+			_, buf, err := conn.ReadMessage()
+			CheckError(err)
+			// pipe buf to netcat stdin...
+			log.Debug("netcat v send:", "buflen", len(buf))
+			stdin.Write(buf)
+		}
+	}()
+	err = commandServe.Wait()
+	CheckError(err)
+
+	// listen
+	listenArgs := []string{installpath, "-l", cmdloc, localPort, cmdKey, cmdCert}
+	log.Info("Run NC Video:", "command", strings.Join(listenArgs, " "))
+	commandListen := exec.Command(listenArgs[0], listenArgs[1:]...)
+	// open scion netcat client listen from friend and ready stdout...
+	stdout, err := commandListen.StdoutPipe()
+	CheckError(err)
+	reader := bufio.NewReader(stdout)
+	buf := make([]byte, 1024)
+	go func(reader io.Reader) {
+		for {
+			n, err := reader.Read(buf)
+			fmt.Println(n, err, buf[:n])
+			if err == io.EOF {
+				break
+			}
+			// recieved buf on stdin while running netcat...
+			log.Debug("netcat v recv:", "buflen", len(buf))
+			// send buf to browser
+			err = conn.WriteMessage(websocket.BinaryMessage, buf)
+			CheckError(err)
+		}
+	}(reader)
+	err = commandListen.Start()
+	CheckError(err)
+	err = commandListen.Wait()
+	CheckError(err)
+}
+
 func setUserOptionsHandler(w http.ResponseWriter, r *http.Request) {
 	// in:myIA , out:nil, set locally
 	myIa := r.PostFormValue("myIA")
@@ -802,7 +879,7 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // TODO fix
+		return true // TODO fix, ensure that
 	},
 }
 
@@ -820,7 +897,6 @@ func chatConfigHandler(w http.ResponseWriter, r *http.Request) {
 			"-days", "365",
 			"-out", certPath,
 			"-subj", "/CN=localhost"}
-		//"-subj", "'/'"}
 		log.Info("Executing:", "command", strings.Join(certArgs, " "))
 		cmd := exec.Command(certArgs[0], certArgs[1:]...)
 
@@ -860,7 +936,7 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	cmdKey := fmt.Sprintf("-tlsKey=%s", keyPath)
 	cmdCert := fmt.Sprintf("-tlsCert=%s", certPath)
 
-	// TODO: (mwfarb) add resonable retry logic when handshake timeout occurs
+	// TODO: (mwfarb) add reasonable retry logic when handshake timeout occurs
 
 	// serve
 	serveArgs := []string{installpath, cmdloc, remoteAddr, remotePort}
@@ -878,7 +954,7 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 			_, msg, err := conn.ReadMessage()
 			CheckError(err)
 			// pipe message to netcat stdin...
-			log.Debug("netcat send:", "msg", string(msg))
+			log.Debug("netcat t send:", "msg", string(msg))
 			stdin.Write(append(msg, '\n'))
 		}
 	}()
@@ -898,7 +974,7 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 		for scanner.Scan() {
 			// recieved text on stdin while running netcat...
 			msg := scanner.Text()
-			log.Debug("netcat recv:", "msg", string(msg))
+			log.Debug("netcat t recv:", "msg", string(msg))
 			// send message to browser
 			err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
 			CheckError(err)
