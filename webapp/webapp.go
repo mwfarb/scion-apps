@@ -34,6 +34,10 @@ import (
 	"strings"
 	"time"
 
+	//"github.com/mattn/go-xmpp"
+	//"gosrc.io/xmpp"
+	//"gosrc.io/xmpp/stanza"
+
 	"github.com/gorilla/websocket"
 	log "github.com/inconshreveable/log15"
 	"github.com/kormat/fmt15"
@@ -195,6 +199,8 @@ func main() {
 	appsBuildCheck("traceroute")
 	appsBuildCheck("netcat")
 
+	//initXmpp("1-ff00_0_111", "scion-xmpp.cylab.cmu.edu")
+
 	initServeHandlers()
 	log.Info(fmt.Sprintf("Browser access: at http://%s:%d.", browserAddr, *port))
 	checkPath(options.BrowseRoot)
@@ -329,7 +335,7 @@ func trcHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func chatHandler(w http.ResponseWriter, r *http.Request) {
-	display(w, "chat", &Page{Title: "SCIONLab Video", MyIA: settings.MyIA})
+	display(w, "chat", &Page{Title: "SCIONLab Chat", MyIA: settings.MyIA})
 }
 
 // There're three CmdItem, BwTestItem, EchoItem and TracerouteItem
@@ -982,3 +988,46 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	err = commandListen.Wait()
 	CheckError(err)
 }
+
+//func initXmpp(fileIa, host string) {
+//     config := xmpp.Config{
+//             TransportConfiguration: xmpp.TransportConfiguration{
+//                     Address: host + ":5222",
+//             },
+//             Jid:          fileIa + "@" + host,
+//             Credential:   xmpp.Password(fileIa),
+//             StreamLogger: os.Stdout,
+//             Insecure:     true,
+//             // TLSConfig: tls.Config{InsecureSkipVerify: true},
+//     }
+//
+//     router := xmpp.NewRouter()
+//     router.HandleFunc("message", handleMessageXmpp)
+//
+//     client, err := xmpp.NewClient(&config, router, errorHandlerXmpp)
+//     if err != nil {
+//             log.Error("%+v", err)
+//     }
+//
+//     // If you pass the client to a connection manager, it will handle the reconnect policy
+//     // for you automatically.
+//     cm := xmpp.NewStreamManager(client, nil)
+//     err = cm.Run()
+//     CheckError(err)
+//}
+//
+//func handleMessageXmpp(s xmpp.Sender, p stanza.Packet) {
+//     msg, ok := p.(stanza.Message)
+//     if !ok {
+//             _, _ = fmt.Fprintf(os.Stdout, "Ignoring packet: %T\n", p)
+//             return
+//     }
+//
+//     _, _ = fmt.Fprintf(os.Stdout, "Body = %s - from = %s\n", msg.Body, msg.From)
+//     reply := stanza.Message{Attrs: stanza.Attrs{To: msg.From}, Body: msg.Body}
+//     _ = s.Send(reply)
+//}
+//
+//func errorHandlerXmpp(err error) {
+//     fmt.Println(err.Error())
+//}

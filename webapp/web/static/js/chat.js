@@ -254,7 +254,7 @@ function showMyFace() {
     // place your media in local object
     .then(function(stream) {
         yourVideo.srcObject = stream;
-        sendVideo(stream);
+        // sendVideo(stream);
         return stream;
     })
     // add your media to stream
