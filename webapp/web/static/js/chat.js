@@ -206,7 +206,7 @@ function readMessage(data) {
             pc.addIceCandidate(new RTCIceCandidate(msg.ice));
         } else if (msg.sdp) {
             if (msg.sdp.type == "offer") {
-                // recieved offer, store as remote conn
+                // received offer, store as remote conn
                 pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
                 // create answer
                 .then(function() {

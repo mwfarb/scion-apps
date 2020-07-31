@@ -805,7 +805,7 @@ func chatVideoHandler(w http.ResponseWriter, r *http.Request) {
 			if err == io.EOF {
 				break
 			}
-			// recieved buf on stdin while running netcat...
+			// received buf on stdin while running netcat...
 			log.Debug("netcat v recv:", "buflen", len(buf))
 			// send buf to browser
 			err = conn.WriteMessage(websocket.BinaryMessage, buf)
@@ -927,7 +927,7 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	go func(reader io.Reader) {
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
-			// recieved text on stdin while running netcat...
+			// received text on stdin while running netcat...
 			msg := scanner.Text()
 			log.Debug("netcat t recv:", "msg", string(msg))
 			// send message to browser
