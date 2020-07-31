@@ -26,11 +26,6 @@ issues:
     - path: bwtester/
       linters:
         - stylecheck
-    - path: webapp/
-      linters:
-        - stylecheck
-        - staticcheck
-        - errcheck
     - path: ssh/
       linters:
         - errcheck
