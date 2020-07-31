@@ -17,6 +17,7 @@ build: scion-bat \
 	scion-sensorfetcher scion-sensorserver \
 	scion-ssh scion-sshd \
 	scion-webapp \
+	scion-chat \
 	example-helloworld \
 	example-shttp-client example-shttp-server example-shttp-fileserver example-shttp-proxy
 
@@ -86,6 +87,10 @@ scion-sshd:
 .PHONY: scion-webapp
 scion-webapp:
 	go build -o $(BIN)/$@ ./webapp/
+
+.PHONY: scion-chat
+scion-chat:
+	go build -o $(BIN)/$@ ./chat/
 
 .PHONY: example-helloworld
 example-helloworld:
