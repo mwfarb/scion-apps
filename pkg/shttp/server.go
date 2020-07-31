@@ -15,31 +15,33 @@
 package shttp
 
 import (
+	"crypto/tls"
 	"net"
 	"net/http"
 
-	"github.com/lucas-clemente/quic-go/h2quic"
+	"github.com/lucas-clemente/quic-go/http3"
 	"github.com/netsec-ethz/scion-apps/pkg/appnet"
 	"github.com/netsec-ethz/scion-apps/pkg/appnet/appquic"
 )
 
-// Server wraps a h2quic.Server making it work with SCION
+// Server wraps a http3.Server making it work with SCION
 type Server struct {
-	*h2quic.Server
+	*http3.Server
 }
 
 // ListenAndServe listens for HTTPS connections on the SCION address addr and calls Serve
 // with handler to handle requests
-func ListenAndServe(addr string, handler http.Handler) error {
+func ListenAndServe(addr string, handler http.Handler, tlsConfig *tls.Config) error {
 
 	scionServer := &Server{
-		Server: &h2quic.Server{
+		Server: &http3.Server{
 			Server: &http.Server{
 				Addr:    addr,
 				Handler: handler,
 			},
 		},
 	}
+	scionServer.TLSConfig = tlsConfig
 	return scionServer.ListenAndServe()
 }
 
@@ -48,7 +50,7 @@ func ListenAndServe(addr string, handler http.Handler) error {
 func Serve(conn net.PacketConn, handler http.Handler) error {
 
 	scionServer := &Server{
-		Server: &h2quic.Server{
+		Server: &http3.Server{
 			Server: &http.Server{
 				Handler: handler,
 			},
@@ -79,11 +81,10 @@ func (srv *Server) Serve(conn net.PacketConn) error {
 
 	// set dummy TLS config if not set:
 	if srv.TLSConfig == nil {
-		cfg, err := appquic.GetDummyTLSConfig()
-		if err != nil {
-			return err
-		}
-		srv.TLSConfig = cfg
+		srv.TLSConfig = &tls.Config{}
+	}
+	if len(srv.TLSConfig.Certificates) == 0 {
+		srv.TLSConfig.Certificates = appquic.GetDummyTLSCerts()
 	}
 
 	return srv.Server.Serve(conn)
