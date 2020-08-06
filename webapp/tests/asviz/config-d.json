@@ -2,8 +2,5 @@
  "google_geolocation_apikey": null,
  "google_mapsjs_apikey": null,
  "nodes_xml_url": null,
- "labels_json_url": null,
- "webrtc_appId": null,
- "webrtc_apiKey": null,
- "webrtc_messagingSenderId": null
+ "labels_json_url": null
 }

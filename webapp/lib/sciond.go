@@ -418,7 +418,6 @@ func isJSON(b []byte) bool {
 func ConfigHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	debug, _ := strconv.ParseBool(strings.Join(r.Form["debug"], ""))
-	log.Debug("ConfigHandler:", "debug", debug)
 	projectID := "my-project-1470640410708"
 	url := fmt.Sprintf("https://%s.appspot.com/getconfig", projectID)
 	if len(cConfig) == 0 {
