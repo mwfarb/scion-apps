@@ -66,6 +66,30 @@ function showError(err) {
     }
 }
 
+function reduceHex(hex) {
+    return parseInt(hex, 16).toString(16);
+}
+
+function iaRawCompose(rawIa) {
+    var parts = [];
+    var hex = rawIa.toString(16);
+    var isd = parseInt(hex.slice(0, -12), 16);
+    var as1 = reduceHex(hex.slice(-12, -8));
+    var as2 = reduceHex(hex.slice(-8, -4));
+    var as3 = reduceHex(hex.slice(-4));
+    return [ isd, as1, as2, as3 ];
+}
+
+function iaRaw2Read(rawIa) {
+    var parts = iaRawCompose(rawIa);
+    return parts[0] + '-' + parts.slice(1, 4).join(':');
+}
+
+function iaRaw2File(rawIa) {
+    var parts = iaRawCompose(rawIa);
+    return parts[0] + '-' + parts.slice(1, 4).join('_');
+}
+
 function ipv4Raw2Read(rawIpv4) {
     var b = atob(rawIpv4); // decode
     var a = new Uint8Array(str2ab(b));
@@ -107,9 +131,12 @@ function ajaxAsTopo() {
 
 function isAsTopoComplete(data, textStatus, jqXHR) {
     console.debug(data);
-
-    yourAddr = ipv4Raw2Read(data.if_info.RawEntries[0].HostInfo.Addrs.Ipv4);
+    yourIa = iaRaw2Read(data.as_info.Entries[0].RawIsdas);
+    showMyIa(yourIa);
+    yourAddr = data.if_info["1"].IP;
+    yourPortIf = data.if_info["1"].Port;
     debugLog("yourAddr: " + yourAddr);
+    debugLog("yourPortIf: " + yourPortIf);
 }
 
 function ajaxVizConfig() {
