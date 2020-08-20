@@ -71,6 +71,8 @@ func main() {
 
 func initServeHandlers() {
 	serveExact("/favicon.ico", path.Join(options.StaticRoot, "favicon.ico"))
+	fsStatic := http.FileServer(http.Dir(path.Join(options.StaticRoot, "static")))
+	http.Handle("/static/", http.StripPrefix("/static/", fsStatic))
 	http.HandleFunc("/", chatHandler)
 	http.HandleFunc("/wschat", chatTextHandler)
 	http.HandleFunc("/wsvideo", chatVideoHandler)
