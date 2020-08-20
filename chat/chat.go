@@ -3,14 +3,18 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 
 	//"github.com/mattn/go-xmpp"
@@ -22,19 +26,26 @@ import (
 	"github.com/kormat/fmt15"
 	lib "github.com/netsec-ethz/scion-apps/webapp/lib"
 	. "github.com/netsec-ethz/scion-apps/webapp/util"
+	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/common"
+	"github.com/scionproto/scion/go/lib/sciond"
+	"github.com/scionproto/scion/go/proto"
 )
 
 var id = "chat"
 var templates *template.Template
 var myIA = "1-ff00:0:111" // TODO: remove debug
+var options lib.CmdOptions
+
+// Configuations to save. Zeroing out any of these placeholders will cause the
+// webserver to request a fresh external copy to keep locally.
+var cConfig string
 
 // Page holds default fields for html template expansion for each page.
 type Page struct {
 	Title string
 	MyIA  string
 }
-
-var options lib.CmdOptions
 
 func checkPath(dir string) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -74,6 +85,8 @@ func initServeHandlers() {
 	fsStatic := http.FileServer(http.Dir(path.Join(options.StaticRoot, "static")))
 	http.Handle("/static/", http.StripPrefix("/static/", fsStatic))
 	http.HandleFunc("/", chatHandler)
+	http.HandleFunc("/config", ConfigHandler)
+	http.HandleFunc("/getastopo", AsTopoHandler)
 	http.HandleFunc("/wschat", chatTextHandler)
 	http.HandleFunc("/wsvideo", chatVideoHandler)
 	http.HandleFunc("/chatcfg", chatConfigHandler)
@@ -124,6 +137,91 @@ func getClientLocationBin(app string) string {
 		binname = path.Join(options.AppsRoot, "scion-netcat")
 	}
 	return binname
+}
+
+func returnError(w http.ResponseWriter, err error) {
+	fmt.Fprint(w, `{"err":`+strconv.Quote(err.Error())+`}`)
+}
+
+// connect opens a connection to the scion daemon at sciondAddress or, if
+// empty, the default address.
+func connect(sciondAddress string) (sciond.Connector, error) {
+	if len(sciondAddress) == 0 {
+		sciondAddress = sciond.DefaultSCIONDAddress
+	}
+	sciondConn, err := sciond.NewService(sciondAddress).Connect(context.Background())
+	if CheckError(err) {
+		return nil, err
+	}
+	return sciondConn, nil
+}
+
+// AsTopoHandler handles requests for AS data, returning results from sciond.
+func AsTopoHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	// CIa := r.PostFormValue("src")
+
+	// config, err := LoadSciondConfig(options, CIa)
+	// if CheckError(err) {
+	// 	returnError(w, err)
+	// 	return
+	// }
+
+	//c, err := connect(config.SD.Address)
+	c, err := connect("")
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+
+	asir, err := c.ASInfo(context.Background(), addr.IA{})
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+	ajsonInfo, _ := json.Marshal(asir)
+	log.Debug("AsTopoHandler:", "ajsonInfo", string(ajsonInfo))
+
+	ifirs, err := c.IFInfo(context.Background(), []common.IFIDType{})
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+	ijsonInfo, _ := json.Marshal(ifirs)
+	log.Debug("AsTopoHandler:", "ijsonInfo", string(ijsonInfo))
+
+	svcirs, err := c.SVCInfo(context.Background(), []proto.ServiceType{
+		proto.ServiceType_bs, proto.ServiceType_ps, proto.ServiceType_cs,
+		proto.ServiceType_sb, proto.ServiceType_sig, proto.ServiceType_ds})
+	if CheckError(err) {
+		returnError(w, err)
+		return
+	}
+	sjsonInfo, _ := json.Marshal(svcirs)
+	log.Debug("AsTopoHandler:", "sjsonInfo", string(sjsonInfo))
+
+	fmt.Fprintf(w, fmt.Sprintf(`{"as_info":%s,"if_info":%s,"svc_info":%s}`,
+		ajsonInfo, ijsonInfo, sjsonInfo))
+}
+
+// ConfigHandler handles requests for configurable, centralized data sources.
+func ConfigHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	projectID := "my-project-1470640410708"
+	url := fmt.Sprintf("https://%s.appspot.com/getconfig", projectID)
+	if len(cConfig) == 0 {
+		buf := new(bytes.Buffer)
+		resp, err := http.Post(url, "application/json", buf)
+		if CheckError(err) {
+			returnError(w, err)
+			return
+		}
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		cConfig = string(body)
+		log.Debug("ConfigHandler:", "cached", cConfig)
+	}
+	fmt.Fprint(w, cConfig)
 }
 
 func chatVideoHandler(w http.ResponseWriter, r *http.Request) {
