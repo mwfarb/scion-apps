@@ -56,6 +56,23 @@ function debugLog(msg) {
     $(".stdout").scrollTop($(".stdout")[0].scrollHeight);
 }
 
+function showError(err) {
+    if (err && err != '') {
+        console.error(err);
+        $("#as-error").html(err);
+        $("#as-error").css('color', 'red');
+    } else {
+        $("#as-error").empty();
+    }
+}
+
+function ipv4Raw2Read(rawIpv4) {
+    var b = atob(rawIpv4); // decode
+    var a = new Uint8Array(str2ab(b));
+    var ipv4 = a.join('.');
+    return ipv4;
+}
+
 function ajaxChatConfig() {
     return $.ajax({
         url : 'chatcfg',
