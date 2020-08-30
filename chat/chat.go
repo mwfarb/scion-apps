@@ -24,8 +24,8 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/inconshreveable/log15"
 	"github.com/kormat/fmt15"
-	lib "github.com/netsec-ethz/scion-apps/webapp/lib"
-	. "github.com/netsec-ethz/scion-apps/webapp/util"
+	lib "github.com/netsec-ethz/scion-apps/chat/lib"
+	. "github.com/netsec-ethz/scion-apps/chat/util"
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/sciond"
@@ -34,7 +34,7 @@ import (
 
 var id = "chat"
 var templates *template.Template
-var myIA = "1-ff00:0:111" // TODO: remove debug
+var myIA string
 var options lib.CmdOptions
 
 // Configuations to save. Zeroing out any of these placeholders will cause the
@@ -64,6 +64,17 @@ func main() {
 			log.Must.FileHandler(path.Join(options.StaticRoot, fmt.Sprintf("%s.log", id)),
 				fmt15.Fmt15Format(nil)))))
 
+	// load IA from default sciond or passed in sciond address
+	c, err := connect(options.Sciond)
+	if CheckError(err) {
+		return
+	}
+	asir, err := c.ASInfo(context.Background(), addr.IA{})
+	if CheckError(err) {
+		return
+	}
+	myIA = asir.Entries[0].RawIsdas.String()
+
 	// prepare templates
 	templates = prepareTemplates(options.StaticRoot)
 	log.Info("IA loaded:", "myIa", myIA)
@@ -76,7 +87,7 @@ func main() {
 	initServeHandlers()
 	log.Info(fmt.Sprintf("Browser access: at http://%s:%d.", options.Addr, options.Port))
 	log.Info(fmt.Sprintf("Listening on %s:%d...", options.Addr, options.Port))
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", options.Addr, options.Port), logRequestHandler(http.DefaultServeMux))
+	err = http.ListenAndServe(fmt.Sprintf("%s:%d", options.Addr, options.Port), logRequestHandler(http.DefaultServeMux))
 	CheckFatal(err)
 }
 
@@ -158,17 +169,7 @@ func connect(sciondAddress string) (sciond.Connector, error) {
 
 // AsTopoHandler handles requests for AS data, returning results from sciond.
 func AsTopoHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	// CIa := r.PostFormValue("src")
-
-	// config, err := LoadSciondConfig(options, CIa)
-	// if CheckError(err) {
-	// 	returnError(w, err)
-	// 	return
-	// }
-
-	//c, err := connect(config.SD.Address)
-	c, err := connect("")
+	c, err := connect(options.Sciond)
 	if CheckError(err) {
 		returnError(w, err)
 		return

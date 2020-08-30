@@ -19,25 +19,26 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	//. "github.com/netsec-ethz/scion-apps/webapp/util"
 )
 
 // default params for localhost testing
 var listenAddrDef = "127.0.0.1"
 var listenPortDef = 8000
+var defaultSciond = "127.0.0.1:30255"
 
 // command argument constants
 var CMD_ADR = "a"
 var CMD_PRT = "p"
+var CMD_SCD = "sciond"
 var CMD_ART = "sabin"
 var CMD_WEB = "srvroot"
 
-// appsRoot is the root location of scionlab apps.
 var GOPATH = os.Getenv("GOPATH")
 
 type CmdOptions struct {
 	Addr       string
 	Port       int
+	Sciond     string
 	StaticRoot string
 	AppsRoot   string
 }
@@ -74,6 +75,7 @@ func defaultStaticRoot(appsRoot string) string {
 func ParseFlags() CmdOptions {
 	addr := flag.String(CMD_ADR, listenAddrDef, "Address of server host.")
 	port := flag.Int(CMD_PRT, listenPortDef, "Port of server host.")
+	sciond := flag.String(CMD_SCD, defaultSciond, "SCIOND address")
 	appsRoot := flag.String(CMD_ART, defaultAppsRoot(),
 		"Path to execute the installed scionlab apps binaries")
 	staticRoot := flag.String(CMD_WEB, defaultStaticRoot(*appsRoot),
@@ -83,7 +85,7 @@ func ParseFlags() CmdOptions {
 	if !isFlagUsed(CMD_WEB) {
 		*staticRoot = defaultStaticRoot(*appsRoot)
 	}
-	options := CmdOptions{*addr, *port, *staticRoot, *appsRoot}
+	options := CmdOptions{*addr, *port, *sciond, *staticRoot, *appsRoot}
 	options.AbsPathCmdOptions()
 	return options
 }

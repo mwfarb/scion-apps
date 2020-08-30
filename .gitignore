@@ -54,6 +54,7 @@ roughtime/timeserver/timeserver
 _examples/helloworld/helloworld
 _examples/shttp/client/client
 _examples/shttp/server/server
+chat/chat
 
 # vscode workspace
 *.code-workspace
