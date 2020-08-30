@@ -131,10 +131,8 @@ function ajaxAsTopo() {
 
 function isAsTopoComplete(data, textStatus, jqXHR) {
     console.debug(data);
-    yourIa = iaRaw2Read(data.as_info.Entries[0].RawIsdas);
-    showMyIa(yourIa);
-    yourAddr = data.if_info["1"].IP;
-    yourPortIf = data.if_info["1"].Port;
+    yourAddr = data.if_info[Object.keys(data.if_info)[0]].IP;
+    yourPortIf = data.if_info[Object.keys(data.if_info)[0]].Port;
     debugLog("yourAddr: " + yourAddr);
     debugLog("yourPortIf: " + yourPortIf);
 }
@@ -180,11 +178,12 @@ function isRTCConfigComplete(data, textStatus, jqXHR) {
             // netcat serve to stdin on remote IA friendChatPort
             // - on btn-send(msg), stdin.write(), append.txt("self:"+msg)
             if (friendsIa && friendsAddr && friendsChatPort) {
-                var local = formatScionAddr(yourIa, yourAddr, yourChatPort);
-                var remote = formatScionAddr(friendsIa, friendsAddr,
-                        friendsChatPort);
-                openNetcatChatText(local, remote);
-                openNetcatChatVideo(local, remote);
+                openNetcatChatText(
+                    formatScionAddr(yourIa, yourAddr, yourChatPort), 
+                    formatScionAddr(friendsIa, friendsAddr, friendsChatPort));
+                // openNetcatChatVideo(
+                //     formatScionAddr(yourIa, yourAddr, yourVideoPort), 
+                //     formatScionAddr(friendsIa, friendsAddr, friendsVideoPort));
             }
         }
     };
