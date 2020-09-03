@@ -1,8 +1,13 @@
 # Chat Testing (WIP)
 
+## install go watcher
+``` shell
+go get -u github.com/canthefason/go-watcher
+```
+
 ## SCIONLab VM testing
 ``` shell
-cd /git/scion-apps/chat
+cd scion-apps/chat
 watcher -a 0.0.0.0 -p 8000 -srvroot ./web -sabin $GOPATH/bin
 ```
 
