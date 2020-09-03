@@ -365,12 +365,16 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	//cmdCert := fmt.Sprintf("-tlsCert=%s", certPath)
 
 	// TODO: (mwfarb) add reasonable retry logic when handshake timeout occurs
+	envvars := []string{
+		"SCION_DAEMON_ADDRESS=" + options.Sciond,
+	}
 
 	// serve
 	//serveArgs := []string{installpath, cmdloc, remoteAddr, remotePort, "-b"}
 	serveArgs := []string{installpath, "-b", remote}
 	log.Info("Executing:", "command", strings.Join(serveArgs, " "))
 	commandServe := exec.Command(serveArgs[0], serveArgs[1:]...)
+	commandServe.Env = append(os.Environ(), envvars...)
 	// open scion netcat serve to friend and ready stdin...
 	stdin, err := commandServe.StdinPipe()
 	if CheckError(err) {
@@ -407,6 +411,7 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	listenArgs := []string{installpath, "-b", "-l", localPort}
 	log.Info("Executing:", "command", strings.Join(listenArgs, " "))
 	commandListen := exec.Command(listenArgs[0], listenArgs[1:]...)
+	commandListen.Env = append(os.Environ(), envvars...)
 	// open scion netcat client listen from friend and ready stdout...
 	stdout, err := commandListen.StdoutPipe()
 	if CheckError(err) {
