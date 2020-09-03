@@ -1,5 +1,11 @@
 # Chat Testing (WIP)
 
+# SCIONLab VM testing
+``` shell
+cd /git/scion-apps/chat
+watcher chat -a 0.0.0.0 -p 8000 -srvroot ./web -sabin $GOPATH/bin
+```
+
 # Localhost creating virtual cameras
 ## install deps
 ``` shell
