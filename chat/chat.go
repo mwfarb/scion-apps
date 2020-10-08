@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -17,13 +18,10 @@ import (
 	"strconv"
 	"strings"
 
-	//"github.com/mattn/go-xmpp"
-	//"gosrc.io/xmpp"
-	//"gosrc.io/xmpp/stanza"
-
 	"github.com/gorilla/websocket"
 	log "github.com/inconshreveable/log15"
 	"github.com/kormat/fmt15"
+	xmpp "github.com/mattn/go-xmpp"
 	lib "github.com/netsec-ethz/scion-apps/chat/lib"
 	. "github.com/netsec-ethz/scion-apps/chat/util"
 	"github.com/scionproto/scion/go/lib/addr"
@@ -37,7 +35,7 @@ var templates *template.Template
 var myIA string
 var options lib.CmdOptions
 
-// Configuations to save. Zeroing out any of these placeholders will cause the
+// Configurations to save. Zeroing out any of these placeholders will cause the
 // webserver to request a fresh external copy to keep locally.
 var cConfig string
 
@@ -82,7 +80,8 @@ func main() {
 	checkPath(options.AppsRoot)
 	appsBuildCheck("scion-netcat")
 
-	//initXmpp(myIA, "scion-xmpp.cylab.cmu.edu")
+	localIA, err := addr.IAFromString(myIA)
+	initXMPP(localIA.FileFmt(true))
 
 	initServeHandlers()
 	log.Info(fmt.Sprintf("Browser access: at http://%s:%d.", options.Addr, options.Port))
@@ -445,45 +444,36 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func initXmpp(fileIa, host string) {
-//     config := xmpp.Config{
-//             TransportConfiguration: xmpp.TransportConfiguration{
-//                     Address: host + ":5222",
-//             },
-//             Jid:          fileIa + "@" + host,
-//             Credential:   xmpp.Password(fileIa),
-//             StreamLogger: os.Stdout,
-//             Insecure:     true,
-//             // TLSConfig: tls.Config{InsecureSkipVerify: true},
-//     }
-//
-//     router := xmpp.NewRouter()
-//     router.HandleFunc("message", handleMessageXmpp)
-//
-//     client, err := xmpp.NewClient(&config, router, errorHandlerXmpp)
-//     if err != nil {
-//             log.Error("%+v", err)
-//     }
-//
-//     // If you pass the client to a connection manager, it will handle the reconnect policy
-//     // for you automatically.
-//     cm := xmpp.NewStreamManager(client, nil)
-//     err = cm.Run()
-//     CheckError(err)
-//}
-//
-//func handleMessageXmpp(s xmpp.Sender, p stanza.Packet) {
-//     msg, ok := p.(stanza.Message)
-//     if !ok {
-//             _, _ = fmt.Fprintf(os.Stdout, "Ignoring packet: %T\n", p)
-//             return
-//     }
-//
-//     _, _ = fmt.Fprintf(os.Stdout, "Body = %s - from = %s\n", msg.Body, msg.From)
-//     reply := stanza.Message{Attrs: stanza.Attrs{To: msg.From}, Body: msg.Body}
-//     _ = s.Send(reply)
-//}
-//
-//func errorHandlerXmpp(err error) {
-//     fmt.Println(err.Error())
-//}
+// XMPP
+
+var server = flag.String("server", "scion-xmpp.cylab.cmu.edu", "server")
+var username = flag.String("username", "", "username")
+var password = flag.String("password", "", "password")
+var status = flag.String("status", "xa", "status")
+var statusMessage = flag.String("status-msg", "Ready!", "status message")
+var notls = flag.Bool("notls", true, "No TLS")
+var debug = flag.Bool("debug", false, "debug output")
+var session = flag.Bool("session", false, "use server session")
+
+func serverName(host string) string {
+	return strings.Split(host, ":")[0]
+}
+
+func initXMPP(fileIa string) {
+	var talk *xmpp.Client
+	var err error
+	options := xmpp.Options{Host: *server,
+		User:          fileIa + "@" + *server,
+		Password:      fileIa,
+		NoTLS:         *notls,
+		Debug:         *debug,
+		Session:       *session,
+		Status:        *status,
+		StatusMessage: *statusMessage,
+	}
+	log.Info("xmpp options", "options", options)
+
+	talk, err = options.NewClient()
+	log.Info("", "talk", talk)
+	CheckFatal(err)
+}
