@@ -80,7 +80,7 @@ func main() {
 	checkPath(options.AppsRoot)
 	appsBuildCheck("scion-netcat")
 
-	localIA, err := addr.IAFromString(myIA)
+	localIA, _ := addr.IAFromString(myIA)
 	initXMPP(localIA.FileFmt(true))
 
 	initServeHandlers()
@@ -447,17 +447,11 @@ func chatTextHandler(w http.ResponseWriter, r *http.Request) {
 // XMPP
 
 var server = flag.String("server", "scion-xmpp.cylab.cmu.edu", "server")
-var username = flag.String("username", "", "username")
-var password = flag.String("password", "", "password")
 var status = flag.String("status", "xa", "status")
 var statusMessage = flag.String("status-msg", "Ready!", "status message")
 var notls = flag.Bool("notls", true, "No TLS")
-var debug = flag.Bool("debug", false, "debug output")
+var debug = flag.Bool("debug", true, "debug output")
 var session = flag.Bool("session", false, "use server session")
-
-func serverName(host string) string {
-	return strings.Split(host, ":")[0]
-}
 
 func initXMPP(fileIa string) {
 	var talk *xmpp.Client
@@ -476,4 +470,32 @@ func initXMPP(fileIa string) {
 	talk, err = options.NewClient()
 	log.Info("", "talk", talk)
 	CheckFatal(err)
+
+	// test
+	go func() {
+		for {
+			chat, err := talk.Recv()
+			CheckFatal(err)
+			switch v := chat.(type) {
+			case xmpp.Chat:
+				fmt.Println(v.Remote, v.Text)
+			case xmpp.Presence:
+				fmt.Println(v.From, v.Show)
+			}
+		}
+	}()
+	for {
+		in := bufio.NewReader(os.Stdin)
+		line, err := in.ReadString('\n')
+		if !CheckError(err) {
+			continue
+		}
+		line = strings.TrimRight(line, "\n")
+
+		tokens := strings.SplitN(line, " ", 2)
+		if len(tokens) == 2 {
+			talk.Send(xmpp.Chat{Remote: tokens[0], Type: "chat", Text: tokens[1]})
+		}
+	}
+
 }
